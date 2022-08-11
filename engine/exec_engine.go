@@ -17,7 +17,7 @@ type ExecEngine struct {
 	comm *EngineQueues
 }
 
-func (e *ExecEngine) Start() {
+func (e *ExecEngine) Start(ctx context.Context) {
 	defer e.done()
 
 	cmd := exec.Command(e.cmd[0], e.cmd[1:]...)
@@ -50,7 +50,7 @@ func (e *ExecEngine) Start() {
 		return
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	// Pipe input from WriteQ to the command
@@ -94,6 +94,7 @@ func (e *ExecEngine) Start() {
 }
 
 func (e *ExecEngine) done() {
+	logrus.Debug("Closing engine channels")
 	close(e.comm.ReadQ)
 	close(e.comm.WriteQ)
 }

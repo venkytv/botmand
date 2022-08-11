@@ -1,9 +1,11 @@
 package engine
 
+import "context"
+
 const QBufferSize = 10
 
 type Enginer interface {
-	Start()
+	Start(context.Context)
 }
 
 type EngineQueues struct {

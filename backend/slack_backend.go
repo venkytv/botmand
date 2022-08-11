@@ -178,6 +178,8 @@ func (s SlackBackend) Post() {
 		msgOptions := []slack.MsgOption{
 			slack.MsgOptionText(msg.Text, false),
 			slack.MsgOptionAsUser(true),
+			// TODO: Make this configurable
+			slack.MsgOptionTS(msg.ThreadId),
 		}
 
 		err := s.api.PostMessage(msg.ChannelId, msgOptions...)
