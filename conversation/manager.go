@@ -2,10 +2,12 @@ package conversation
 
 import (
 	"context"
+	"strings"
 	"sync"
 
 	"github.com/duh-uh/teabot/backend"
 	"github.com/duh-uh/teabot/engine"
+	"github.com/duh-uh/teabot/globals"
 	"github.com/duh-uh/teabot/message"
 	"github.com/sirupsen/logrus"
 )
@@ -42,8 +44,22 @@ func (cm *Manager) Start(ctx context.Context) {
 				logrus.Debugf("Matched conversation: %#v", conv)
 				conv.Post(m)
 			}
+		case <-ctx.Done():
+			logrus.Debug("Terminating conversation manager")
+			return
 		}
 	}
+}
+
+func (cm *Manager) getEngineEnvironment(m *message.Message) map[string]string {
+	envmap := make(map[string]string)
+	prefix := strings.ToUpper(globals.BotName)
+	envmap[prefix+"_CHANNEL"] = m.ChannelName
+	envmap[prefix+"_CHANNEL_ID"] = m.ChannelId
+	envmap[prefix+"_THREAD"] = m.ThreadId
+	envmap[prefix+"_BACKEND_NAME"] = cm.backend.Name()
+
+	return envmap
 }
 
 func (cm *Manager) GetConversation(ctx context.Context, m *message.Message) *Conversation {
@@ -60,7 +76,8 @@ func (cm *Manager) GetConversation(ctx context.Context, m *message.Message) *Con
 	// XXX: Testing; create conversation unconditionally
 	if true {
 		engqs := engine.NewEngineQueues()
-		e := engine.NewExecEngine([]string{"./test.sh"}, map[string]string{}, &engqs)
+		envmap := cm.getEngineEnvironment(m)
+		e := engine.NewExecEngine([]string{"./test.sh"}, envmap, &engqs)
 		c := Conversation{
 			threadId:     m.ThreadId,
 			channelId:    m.ChannelId,

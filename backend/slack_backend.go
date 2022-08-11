@@ -84,6 +84,10 @@ func NewSlackBackend(api SlackApier, comm *BackendQueues) *SlackBackend {
 	}
 }
 
+func (s SlackBackend) Name() string {
+	return "Slack"
+}
+
 func (s SlackBackend) newMessage(ev *slack.MessageEvent, cc *slack.Channel) *message.Message {
 	thread := ev.ThreadTimestamp
 	if len(thread) < 1 {

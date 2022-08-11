@@ -5,6 +5,7 @@ import "github.com/duh-uh/teabot/message"
 const QBufferSize = 10
 
 type Backender interface {
+	Name() string
 	Read()
 	Post()
 	Sanitize(*message.Message) *message.Message

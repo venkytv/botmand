@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -13,7 +14,7 @@ func TestExec(t *testing.T) {
 	qs := NewEngineQueues()
 
 	e = NewExecEngine([]string{"./test.sh"}, map[string]string{}, &qs)
-	go e.Start()
+	go e.Start(context.Background())
 
 	nresp := 200
 	qs.WriteQ <- fmt.Sprintf("%d", nresp)
