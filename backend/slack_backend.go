@@ -7,7 +7,9 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
+	"github.com/allegro/bigcache/v3"
 	"github.com/duh-uh/teabot/message"
 	"github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
@@ -16,7 +18,7 @@ import (
 type SlackApier interface {
 	ChannelInfo(channel string) *slack.Channel
 	GetEvents() chan slack.RTMEvent
-	PostMessage(channel string, msgOptions ...slack.MsgOption) error
+	PostMessage(channel string, msgOptions ...slack.MsgOption) (string, error)
 }
 
 type SlackApi struct {
@@ -39,9 +41,9 @@ func (s SlackApi) GetEvents() chan slack.RTMEvent {
 	return s.rtm.IncomingEvents
 }
 
-func (s SlackApi) PostMessage(channel string, msgOptions ...slack.MsgOption) error {
-	_, _, err := s.client.PostMessage(channel, msgOptions...)
-	return err
+func (s SlackApi) PostMessage(channel string, msgOptions ...slack.MsgOption) (string, error) {
+	_, timestamp, err := s.client.PostMessage(channel, msgOptions...)
+	return timestamp, err
 }
 
 func NewSlackApi(configPath string) SlackApi {
@@ -72,15 +74,22 @@ type SlackBackend struct {
 	me        string
 	chanCache map[string]*slack.Channel
 	sanitiser func(*message.Message) *message.Message
+	msgCache  *bigcache.BigCache
 }
 
 func NewSlackBackend(api SlackApier, comm *BackendQueues) *SlackBackend {
+	msgCache, err := bigcache.NewBigCache(bigcache.DefaultConfig(1 * time.Minute))
+	if err != nil {
+		logrus.Fatal("Failed to initialise message cache: ", err)
+	}
+
 	return &SlackBackend{
 		api:  api,
 		comm: comm,
 
 		chanCache: make(map[string]*slack.Channel),
 		sanitiser: func(m *message.Message) *message.Message { return m },
+		msgCache:  msgCache,
 	}
 }
 
@@ -135,12 +144,21 @@ func (s *SlackBackend) Read() {
 			}
 
 			if ev.User == "" {
-				logrus.Debug("Ignoring ghost message: ", ev)
+				logrus.Debugf("Ignoring ghost message: %#v", ev)
 				break
 			}
 
 			if ev.User == s.me {
-				logrus.Debug("Ignoring my message: ", ev)
+				if _, err := s.msgCache.Get(ev.Timestamp); err != nil {
+					// Found message in bot-generated message cache
+					logrus.Debugf("Ignoring my message: %#v", ev)
+					break
+				}
+			}
+
+			// XXX: Make this configurable?
+			if ev.User == "USLACKBOT" {
+				logrus.Debugf("Ignoring Slackbot message: %#v", ev)
 				break
 			}
 
@@ -150,10 +168,10 @@ func (s *SlackBackend) Read() {
 			}
 
 			chanInfo := s.channelInfo(ev.Channel)
-			logrus.Debug("Channel: ", chanInfo)
+			logrus.Debugf("Channel: %#v", chanInfo)
 
 			m := s.newMessage(ev, chanInfo)
-			logrus.Debugf("Message: %#v", m)
+			logrus.Debugf("Message: %#v, from event: %#v", m, ev)
 
 			s.comm.MesgQ <- m
 
@@ -187,9 +205,15 @@ func (s SlackBackend) Post() {
 			slack.MsgOptionTS(msg.ThreadId),
 		}
 
-		err := s.api.PostMessage(msg.ChannelId, msgOptions...)
+		timestamp, err := s.api.PostMessage(msg.ChannelId, msgOptions...)
 		if err != nil {
 			logrus.Error("PostMessage error: ", err)
+		}
+
+		// Cache bot messages for a minute
+		err = s.msgCache.Set(timestamp, nil)
+		if err != nil {
+			logrus.Error("Error caching message timestamp: ", err)
 		}
 	}
 }

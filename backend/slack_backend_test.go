@@ -126,8 +126,8 @@ func (s TestSlackApi) GetEvents() chan slack.RTMEvent {
 	return ch
 }
 
-func (s TestSlackApi) PostMessage(channel string, msgOptions ...slack.MsgOption) error {
-	return nil
+func (s TestSlackApi) PostMessage(channel string, msgOptions ...slack.MsgOption) (string, error) {
+	return "", nil
 }
 
 func TestRead(t *testing.T) {
