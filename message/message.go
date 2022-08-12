@@ -6,4 +6,5 @@ type Message struct {
 	ChannelId   string
 	ChannelName string
 	ThreadId    string
+	Locale      string
 }

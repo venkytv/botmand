@@ -58,6 +58,7 @@ func (cm *Manager) getEngineEnvironment(m *message.Message) map[string]string {
 	envmap[prefix+"_CHANNEL_ID"] = m.ChannelId
 	envmap[prefix+"_THREAD"] = m.ThreadId
 	envmap[prefix+"_BACKEND_NAME"] = cm.backend.Name()
+	envmap[prefix+"_LOCALE"] = m.Locale
 
 	return envmap
 }

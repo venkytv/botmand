@@ -100,6 +100,7 @@ func (s SlackBackend) newMessage(ev *slack.MessageEvent, cc *slack.Channel) *mes
 		ChannelId:   ev.Channel,
 		ChannelName: cc.Name,
 		ThreadId:    thread,
+		Locale:      cc.Locale,
 	}
 }
 
