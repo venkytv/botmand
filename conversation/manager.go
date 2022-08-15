@@ -13,18 +13,22 @@ import (
 )
 
 type Manager struct {
-	backend       backend.Backender
-	backendQueues backend.BackendQueues
-	conversations map[string]*Conversation
-	mu            *sync.RWMutex
+	backend              backend.Backender
+	backendQueues        backend.BackendQueues
+	conversations        map[string]*Conversation
+	convLock             *sync.RWMutex
+	channelConversations map[string]map[string]*Conversation
+	channelConvLock      *sync.RWMutex
 }
 
 func NewManager(backend backend.Backender, backendQueues backend.BackendQueues) *Manager {
 	cm := Manager{
-		backend:       backend,
-		backendQueues: backendQueues,
-		conversations: make(map[string]*Conversation),
-		mu:            &sync.RWMutex{},
+		backend:              backend,
+		backendQueues:        backendQueues,
+		conversations:        make(map[string]*Conversation),
+		convLock:             &sync.RWMutex{},
+		channelConversations: make(map[string]map[string]*Conversation),
+		channelConvLock:      &sync.RWMutex{},
 	}
 
 	return &cm
@@ -39,9 +43,8 @@ func (cm *Manager) Start(ctx context.Context) {
 		case m := <-cm.backendQueues.MesgQ:
 			m = cm.backend.Sanitize(m)
 
-			conv := cm.GetConversation(ctx, m)
-			if conv != nil {
-				logrus.Debugf("Matched conversation: %#v", conv)
+			convs := cm.GetConversations(ctx, m)
+			for _, conv := range convs {
 				conv.Post(m)
 			}
 		case <-ctx.Done():
@@ -56,31 +59,99 @@ func (cm *Manager) getEngineEnvironment(m *message.Message) map[string]string {
 	prefix := strings.ToUpper(globals.BotName)
 	envmap[prefix+"_CHANNEL"] = m.ChannelName
 	envmap[prefix+"_CHANNEL_ID"] = m.ChannelId
-	envmap[prefix+"_THREAD"] = m.ThreadId
 	envmap[prefix+"_BACKEND_NAME"] = cm.backend.Name()
 	envmap[prefix+"_LOCALE"] = m.Locale
+
+	if m.ThreadId != "" {
+		envmap[prefix+"_THREAD"] = m.ThreadId
+	}
 
 	return envmap
 }
 
-func (cm *Manager) GetConversation(ctx context.Context, m *message.Message) *Conversation {
-	// Read lock the conversations map
-	cm.mu.RLock()
-	defer cm.mu.RUnlock()
+func (cm *Manager) addThreadedConversation(ctx context.Context, c *Conversation, threadId string) {
+	c.threadId = threadId
 
+	cm.convLock.Lock()
+	if _, exists := cm.conversations[threadId]; !exists {
+		cm.conversations[threadId] = c
+		globals.NumThreadedConversations.Inc()
+		globals.NumConversations.Inc()
+		cm.convLock.Unlock()
+
+		go func() {
+			c.Start(ctx)
+
+			// Remove conversation from manager
+			cm.convLock.Lock()
+			delete(cm.conversations, threadId)
+			globals.NumThreadedConversations.Dec()
+			globals.NumConversations.Dec()
+			cm.convLock.Unlock()
+		}()
+	} else {
+		cm.convLock.Unlock()
+		logrus.Infof("Race detected: conversation: %#v, thread: %s", c, threadId)
+	}
+}
+
+func (cm *Manager) addChannelConversation(ctx context.Context, c *Conversation, channelId string, convId string) {
+	cm.channelConvLock.Lock()
+	if _, exists := cm.channelConversations[channelId][convId]; !exists {
+		if _, exists := cm.channelConversations[channelId]; !exists {
+			cm.channelConversations[channelId] = map[string]*Conversation{}
+		}
+		cm.channelConversations[channelId][convId] = c
+		globals.NumChannelConversations.Inc()
+		globals.NumConversations.Inc()
+		cm.channelConvLock.Unlock()
+
+		go func() {
+			c.Start(ctx)
+
+			// Remove conversation from manager
+			cm.channelConvLock.Lock()
+			delete(cm.channelConversations[channelId], convId)
+			globals.NumChannelConversations.Dec()
+			globals.NumConversations.Dec()
+			cm.channelConvLock.Unlock()
+		}()
+	} else {
+		cm.channelConvLock.Unlock()
+		logrus.Infof("Race detected: conversation: %#v, channelID: %s, convID: %s",
+			c, channelId, convId)
+	}
+}
+
+func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*Conversation {
+	conversations := []*Conversation{}
+
+	cm.convLock.RLock()
 	if c, ok := cm.conversations[m.ThreadId]; ok {
 		// Found conversation for message thread
 		logrus.Debugf("Matched existing conversation: %#v", c)
-		return c
+		conversations = append(conversations, c)
 	}
+	cm.convLock.RUnlock()
+
+	cm.channelConvLock.RLock()
+	if cc, ok := cm.channelConversations[m.ChannelId]; ok {
+		// Found channel conversations for channel ID
+		for _, c := range cc {
+			logrus.Debugf("Matched existing channel conversation: %#v", c)
+			conversations = append(conversations, c)
+		}
+	}
+	cm.channelConvLock.RUnlock()
 
 	// XXX: Testing; create conversation unconditionally
-	if true {
+	if len(conversations) < 1 {
+		isThreadedConv := true
+
 		engqs := engine.NewEngineQueues()
 		envmap := cm.getEngineEnvironment(m)
 		e := engine.NewExecEngine([]string{"./test.sh"}, envmap, &engqs)
 		c := Conversation{
-			threadId:     m.ThreadId,
 			channelId:    m.ChannelId,
 			channelName:  m.ChannelName,
 			manager:      cm,
@@ -88,28 +159,16 @@ func (cm *Manager) GetConversation(ctx context.Context, m *message.Message) *Con
 			engineQueues: engqs,
 		}
 
-		// Upgrade to write lock
-		cm.mu.RUnlock()
-		cm.mu.Lock()
-		if _, exists := cm.conversations[c.threadId]; !exists {
-			cm.conversations[c.threadId] = &c
-			go func() {
-				c.Start(ctx)
-
-				// Remove conversation from manager
-				delete(cm.conversations, c.threadId)
-			}()
+		if isThreadedConv {
+			cm.addThreadedConversation(ctx, &c, m.ThreadId)
+		} else {
+			cm.addChannelConversation(ctx, &c, m.ChannelId, e.Name())
 		}
 
-		// Downgrade to read lock
-		cm.mu.Unlock()
-		cm.mu.RLock()
-
-		return &c
+		conversations = append(conversations, &c)
 	}
 
-	// No conversation matching message
-	return nil
+	return conversations
 }
 
 func (cm *Manager) Post(m *message.Message) {

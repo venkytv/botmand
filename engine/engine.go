@@ -5,6 +5,7 @@ import "context"
 const QBufferSize = 10
 
 type Enginer interface {
+	Name() string
 	Start(context.Context)
 }
 

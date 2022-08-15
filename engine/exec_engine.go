@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
@@ -15,6 +16,10 @@ type ExecEngine struct {
 	cmd  []string
 	env  map[string]string
 	comm *EngineQueues
+}
+
+func (e *ExecEngine) Name() string {
+	return strings.Join(e.cmd, " ")
 }
 
 func (e *ExecEngine) Start(ctx context.Context) {

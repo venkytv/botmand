@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"errors"
+	"net/http"
 	"os"
 	"os/signal"
 	"path"
@@ -9,6 +11,7 @@ import (
 
 	"github.com/duh-uh/teabot/backend"
 	"github.com/duh-uh/teabot/conversation"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,6 +26,18 @@ func main() {
 		sig := <-sigs
 		logrus.Debug("Caught signal: ", sig)
 		done <- true
+	}()
+
+	// Metrics interface
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		// XXX: Get port from argv
+		err := http.ListenAndServe(":2112", nil)
+		if errors.Is(err, http.ErrServerClosed) {
+			logrus.Info("Metrics server shutdown")
+		} else {
+			logrus.Warnf("Error starting metrics server: %s", err)
+		}
 	}()
 
 	homedir, err := os.UserHomeDir()
