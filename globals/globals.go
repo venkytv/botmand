@@ -10,6 +10,16 @@ const (
 )
 
 var (
+	NumExecEngineFactories = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: BotName + "_exec_engines_total",
+		Help: "Total number of exec engines.",
+	})
+
+	NumConversationTriggers = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: BotName + "_conversation_triggers_total",
+		Help: "Total number of conversation triggers.",
+	})
+
 	NumConversations = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: BotName + "_conversations_total",
 		Help: "Total number of current conversations.",

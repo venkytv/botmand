@@ -2,11 +2,9 @@ package backend
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/allegro/bigcache/v3"
@@ -46,17 +44,10 @@ func (s SlackApi) PostMessage(channel string, msgOptions ...slack.MsgOption) (st
 	return timestamp, err
 }
 
-func NewSlackApi(configPath string) SlackApi {
-	content, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		logrus.Fatal("Failed to open config file:", configPath, err)
-	}
-
-	token := strings.TrimSpace(string(content))
-
+func NewSlackApi(token string, debug bool) SlackApi {
 	client := slack.New(
 		token,
-		slack.OptionDebug(false), // XXX: Make option
+		slack.OptionDebug(debug),
 		slack.OptionLog(log.New(os.Stdout, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
 	)
 	rtm := client.NewRTM()
@@ -156,7 +147,6 @@ func (s *SlackBackend) Read() {
 				}
 			}
 
-			// XXX: Make this configurable?
 			if ev.User == "USLACKBOT" {
 				logrus.Debugf("Ignoring Slackbot message: %#v", ev)
 				break
@@ -201,7 +191,6 @@ func (s SlackBackend) Post() {
 		msgOptions := []slack.MsgOption{
 			slack.MsgOptionText(msg.Text, false),
 			slack.MsgOptionAsUser(true),
-			// TODO: Make this configurable
 			slack.MsgOptionTS(msg.ThreadId),
 		}
 

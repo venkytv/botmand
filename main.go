@@ -3,20 +3,49 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
 	"path"
+	"strings"
 	"syscall"
 
 	"github.com/duh-uh/teabot/backend"
 	"github.com/duh-uh/teabot/conversation"
+	"github.com/duh-uh/teabot/globals"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
+
+	"github.com/venkytv/go-config"
 )
 
 func main() {
-	logrus.SetLevel(logrus.DebugLevel)
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		logrus.Fatalf("Error getting user home directory: %v", err)
+	}
+
+	defaultTokenFile := path.Join(homedir, ".botters.token")
+	defaultBotDirectory := path.Join(homedir, "teabot-engines")
+
+	// Load config
+	flag.Bool("enable-metrics", false, "enable prometheus-style metrics")
+	flag.Int("metrics-port", 2112, "metrics port")
+	flag.Bool("debug", false, "print debug messages")
+	flag.String("bot-directory", defaultBotDirectory, "bot directory")
+	flag.String("slack-backend-token", "", "api token for slack backend")
+	flag.String("slack-backend-token-file", defaultTokenFile, "file containing slack backend api token")
+
+	cfg := config.Load(nil, globals.BotName)
+
+	debug := false
+	if cfg.GetBool("debug") {
+		debug = true
+		logrus.SetLevel(logrus.DebugLevel)
+	}
 
 	// Signal handling
 	sigs := make(chan os.Signal, 1)
@@ -29,31 +58,37 @@ func main() {
 	}()
 
 	// Metrics interface
-	go func() {
-		http.Handle("/metrics", promhttp.Handler())
-		// XXX: Get port from argv
-		err := http.ListenAndServe(":2112", nil)
-		if errors.Is(err, http.ErrServerClosed) {
-			logrus.Info("Metrics server shutdown")
-		} else {
-			logrus.Warnf("Error starting metrics server: %s", err)
-		}
-	}()
-
-	homedir, err := os.UserHomeDir()
-	if err != nil {
-		logrus.Fatalf("Error getting user home directory: %v", err)
+	if cfg.GetBool("enable-metrics") {
+		go func() {
+			http.Handle("/metrics", promhttp.Handler())
+			err := http.ListenAndServe(fmt.Sprintf(":%d", cfg.GetInt("metrics-port")), nil)
+			if errors.Is(err, http.ErrServerClosed) {
+				logrus.Info("Metrics server shutdown")
+			} else {
+				logrus.Warnf("Error starting metrics server: %s", err)
+			}
+		}()
 	}
 
-	tokenFile := path.Join(homedir, ".botters.token")
-	api := backend.NewSlackApi(tokenFile)
+	apiToken := cfg.GetString("slack-backend-token")
+	if len(apiToken) < 1 {
+		// Load API token from file
+		apiTokenFile := cfg.GetString("slack-backend-token-file")
+		content, err := ioutil.ReadFile(apiTokenFile)
+		if err != nil {
+			logrus.Fatal("Failed to open config file:", apiTokenFile, err)
+		}
+		apiToken = strings.TrimSpace(string(content))
+	}
 
-	beqs := backend.NewBackendQueues()
-	be := backend.NewSlackBackend(&api, &beqs)
-	cm := conversation.NewManager(be, beqs)
+	api := backend.NewSlackApi(apiToken, debug)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	beqs := backend.NewBackendQueues()
+	be := backend.NewSlackBackend(&api, &beqs)
+	cm := conversation.NewManager(ctx, cfg, be, beqs)
 
 	go cm.Start(ctx)
 

@@ -2,6 +2,7 @@ package conversation
 
 import (
 	"context"
+	"regexp"
 	"strings"
 	"sync"
 
@@ -10,21 +11,51 @@ import (
 	"github.com/duh-uh/teabot/globals"
 	"github.com/duh-uh/teabot/message"
 	"github.com/sirupsen/logrus"
+	"github.com/venkytv/go-config"
 )
 
 type Manager struct {
 	backend              backend.Backender
 	backendQueues        backend.BackendQueues
+	patterns             map[*regexp.Regexp][]engine.EngineFactoryer
 	conversations        map[string]*Conversation
 	convLock             *sync.RWMutex
 	channelConversations map[string]map[string]*Conversation
 	channelConvLock      *sync.RWMutex
 }
 
-func NewManager(backend backend.Backender, backendQueues backend.BackendQueues) *Manager {
+func NewManager(ctx context.Context, cfg *config.Config, backend backend.Backender, backendQueues backend.BackendQueues) *Manager {
+	patterns := make(map[*regexp.Regexp][]engine.EngineFactoryer)
+
+	efls := []engine.EngineFactoryLoader{
+		engine.ExecEngineFactoryLoader{Dir: cfg.GetString("bot-directory")},
+	}
+	for _, efl := range efls {
+		efs := efl.Load(ctx)
+		globals.NumExecEngineFactories.Set(float64(len(efs)))
+		for _, ef := range efs {
+			for _, pattern := range ef.Config().Patterns {
+				re, err := regexp.Compile(pattern)
+				if err != nil {
+					logrus.Warnf("Failed to compile regex: %s: %#v: %v", pattern, ef, err)
+					continue
+				}
+
+				patterns[re] = append(patterns[re], ef)
+			}
+		}
+	}
+	nPatterns := len(patterns)
+	globals.NumConversationTriggers.Set(float64(nPatterns))
+	if nPatterns < 1 {
+		logrus.Warn("No bots loaded!")
+	}
+
+	logrus.Debugf("Loaded engine factories: %#v", patterns)
 	cm := Manager{
 		backend:              backend,
 		backendQueues:        backendQueues,
+		patterns:             patterns,
 		conversations:        make(map[string]*Conversation),
 		convLock:             &sync.RWMutex{},
 		channelConversations: make(map[string]map[string]*Conversation),
@@ -95,7 +126,7 @@ func (cm *Manager) addThreadedConversation(ctx context.Context, c *Conversation,
 	}
 }
 
-func (cm *Manager) addChannelConversation(ctx context.Context, c *Conversation, channelId string, convId string) {
+func (cm *Manager) addChannelConversation(ctx context.Context, c *Conversation, channelId string, convId string) bool {
 	cm.channelConvLock.Lock()
 	if _, exists := cm.channelConversations[channelId][convId]; !exists {
 		if _, exists := cm.channelConversations[channelId]; !exists {
@@ -116,10 +147,12 @@ func (cm *Manager) addChannelConversation(ctx context.Context, c *Conversation, 
 			globals.NumConversations.Dec()
 			cm.channelConvLock.Unlock()
 		}()
+
+		return true
 	} else {
+		// Bot already active in channel
 		cm.channelConvLock.Unlock()
-		logrus.Infof("Race detected: conversation: %#v, channelID: %s, convID: %s",
-			c, channelId, convId)
+		return false
 	}
 }
 
@@ -144,28 +177,34 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 	}
 	cm.channelConvLock.RUnlock()
 
-	// XXX: Testing; create conversation unconditionally
-	if len(conversations) < 1 {
-		isThreadedConv := true
+	for re, efs := range cm.patterns {
+		if re.MatchString(m.Text) {
+			for _, ef := range efs {
+				engqs := engine.NewEngineQueues()
+				envmap := cm.getEngineEnvironment(m)
 
-		engqs := engine.NewEngineQueues()
-		envmap := cm.getEngineEnvironment(m)
-		e := engine.NewExecEngine([]string{"./test.sh"}, envmap, &engqs)
-		c := Conversation{
-			channelId:    m.ChannelId,
-			channelName:  m.ChannelName,
-			manager:      cm,
-			engine:       e,
-			engineQueues: engqs,
+				e := ef.Create(envmap, &engqs)
+				c := Conversation{
+					channelId:    m.ChannelId,
+					channelName:  m.ChannelName,
+					manager:      cm,
+					engine:       e,
+					engineQueues: engqs,
+				}
+
+				if ef.Config().Threaded {
+					cm.addThreadedConversation(ctx, &c, m.ThreadId)
+					conversations = append(conversations, &c)
+				} else {
+					if cm.addChannelConversation(ctx, &c, m.ChannelId, ef.Id()) {
+						conversations = append(conversations, &c)
+					} else {
+						logrus.Debugf("Ignoring trigger as bot already active on channel: %s: %s: %#v",
+							c.channelName, m.Text, ef)
+					}
+				}
+			}
 		}
-
-		if isThreadedConv {
-			cm.addThreadedConversation(ctx, &c, m.ThreadId)
-		} else {
-			cm.addChannelConversation(ctx, &c, m.ChannelId, e.Name())
-		}
-
-		conversations = append(conversations, &c)
 	}
 
 	return conversations
