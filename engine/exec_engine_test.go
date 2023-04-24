@@ -13,7 +13,11 @@ func TestExec(t *testing.T) {
 
 	qs := NewEngineQueues()
 
-	e = NewExecEngine([]string{"./test.sh"}, map[string]string{}, &qs)
+	e = ExecEngine{
+		cmd:  "./test.sh",
+		env:  map[string]string{},
+		comm: &qs,
+	}
 	go e.Start(context.Background())
 
 	nresp := 200

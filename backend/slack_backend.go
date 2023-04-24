@@ -90,7 +90,10 @@ func (s SlackBackend) Name() string {
 
 func (s SlackBackend) newMessage(ev *slack.MessageEvent, cc *slack.Channel) *message.Message {
 	thread := ev.ThreadTimestamp
+	inThread := true // Assume we're in a thread unless we're not
+
 	if len(thread) < 1 {
+		inThread = false // We're not in a threaded conversation yet
 		thread = ev.Timestamp
 	}
 
@@ -100,6 +103,7 @@ func (s SlackBackend) newMessage(ev *slack.MessageEvent, cc *slack.Channel) *mes
 		ChannelId:   ev.Channel,
 		ChannelName: cc.Name,
 		ThreadId:    thread,
+		InThread:    inThread,
 		Locale:      cc.Locale,
 	}
 }

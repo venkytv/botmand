@@ -9,12 +9,13 @@ import (
 )
 
 type Conversation struct {
-	threadId     string
-	channelId    string
-	channelName  string
-	manager      *Manager
-	engine       engine.Enginer
-	engineQueues engine.EngineQueues
+	threadId      string
+	channelId     string
+	channelName   string
+	manager       *Manager
+	engine        engine.Enginer
+	engineFactory engine.EngineFactoryer
+	engineQueues  engine.EngineQueues
 }
 
 func NewConversation(engine engine.Enginer, engineQueues engine.EngineQueues) *Conversation {

@@ -35,7 +35,7 @@ func main() {
 	flag.Bool("enable-metrics", false, "enable prometheus-style metrics")
 	flag.Int("metrics-port", 2112, "metrics port")
 	flag.Bool("debug", false, "print debug messages")
-	flag.String("bot-directory", defaultBotDirectory, "bot directory")
+	flag.String("config-directory", defaultBotDirectory, "config directory")
 	flag.String("slack-backend-token", "", "api token for slack backend")
 	flag.String("slack-backend-token-file", defaultTokenFile, "file containing slack backend api token")
 

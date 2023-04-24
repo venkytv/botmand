@@ -2,6 +2,7 @@ package conversation
 
 import (
 	"context"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
@@ -15,9 +16,11 @@ import (
 )
 
 type Manager struct {
+	registry             engine.EngineRegistry
 	backend              backend.Backender
 	backendQueues        backend.BackendQueues
-	patterns             map[*regexp.Regexp][]engine.EngineFactoryer
+	triggers             map[*regexp.Regexp][]engine.EngineFactoryer
+	triggerLock          *sync.RWMutex
 	conversations        map[string]*Conversation
 	convLock             *sync.RWMutex
 	channelConversations map[string]map[string]*Conversation
@@ -25,44 +28,87 @@ type Manager struct {
 }
 
 func NewManager(ctx context.Context, cfg *config.Config, backend backend.Backender, backendQueues backend.BackendQueues) *Manager {
-	patterns := make(map[*regexp.Regexp][]engine.EngineFactoryer)
+	engineRegistry := engine.NewEngineRegistry()
 
-	efls := []engine.EngineFactoryLoader{
-		engine.ExecEngineFactoryLoader{Dir: cfg.GetString("bot-directory")},
-	}
-	for _, efl := range efls {
-		efs := efl.Load(ctx)
-		globals.NumExecEngineFactories.Set(float64(len(efs)))
-		for _, ef := range efs {
-			for _, pattern := range ef.Config().Patterns {
-				re, err := regexp.Compile(pattern)
-				if err != nil {
-					logrus.Warnf("Failed to compile regex: %s: %#v: %v", pattern, ef, err)
-					continue
-				}
+	engineRegistry.Register("executable", engine.ExecEngineFactoryLoader{})
 
-				patterns[re] = append(patterns[re], ef)
-			}
-		}
-	}
-	nPatterns := len(patterns)
-	globals.NumConversationTriggers.Set(float64(nPatterns))
-	if nPatterns < 1 {
-		logrus.Warn("No bots loaded!")
-	}
-
-	logrus.Debugf("Loaded engine factories: %#v", patterns)
 	cm := Manager{
+		registry:             engineRegistry,
 		backend:              backend,
 		backendQueues:        backendQueues,
-		patterns:             patterns,
+		triggerLock:          &sync.RWMutex{},
 		conversations:        make(map[string]*Conversation),
 		convLock:             &sync.RWMutex{},
 		channelConversations: make(map[string]map[string]*Conversation),
 		channelConvLock:      &sync.RWMutex{},
 	}
 
+	engine.ConfigInit()
+	cm.LoadEngines(ctx, cfg)
+
 	return &cm
+}
+
+// Load engines from the config directory
+func (cm *Manager) LoadEngines(ctx context.Context, cfg *config.Config) {
+	config_dir := cfg.GetString("config-directory")
+
+	config_files, err := filepath.Glob(filepath.Join(config_dir, "*.yaml"))
+	if err != nil {
+		logrus.Fatalf("Failed to glob config files: %v", err)
+	}
+
+	// Load yaml files with ".yml" extension
+	yml_config_files, err := filepath.Glob(filepath.Join(config_dir, "*.yml"))
+	if err != nil {
+		logrus.Fatalf("Failed to glob config files: %v", err)
+	}
+	config_files = append(config_files, yml_config_files...)
+
+	// Lock the triggers map
+	cm.triggerLock.Lock()
+
+	cm.triggers = make(map[*regexp.Regexp][]engine.EngineFactoryer)
+	execEngineNames := make(map[string]bool)
+	for _, config_file := range config_files {
+		logrus.Debugf("Loading config file: %s", config_file)
+		config, err := engine.LoadConfig(config_file)
+		if err != nil {
+			logrus.Warnf("Failed to load config file: %s: %v", config_file, err)
+			continue
+		}
+
+		// Bail out if config with same name already exists
+		if _, ok := execEngineNames[config.Name]; ok {
+			logrus.Warnf("Duplicate config name: %s", config.Name)
+			continue
+		}
+		execEngineNames[config.Name] = true
+
+		factory := cm.registry.GetEngineFactory(ctx, config)
+		logrus.Debugf("Loaded engine factory: %#v", factory)
+
+		// Add triggers from config to the manager
+		for _, pattern := range config.Triggers {
+			re, err := regexp.Compile(pattern)
+			if err != nil {
+				logrus.Warnf("Failed to compile regex: %s: %#v: %v", pattern, factory, err)
+				continue
+			}
+
+			cm.triggers[re] = append(cm.triggers[re], factory)
+		}
+	}
+
+	cm.triggerLock.Unlock()
+
+	globals.NumExecEngineFactories.Set(float64(len(execEngineNames)))
+	nTriggers := len(cm.triggers)
+	globals.NumConversationTriggers.Set(float64(nTriggers))
+	if nTriggers < 1 {
+		logrus.Warn("No bots loaded!")
+	}
+	logrus.Debugf("Loaded engine factories: %+v", cm.triggers)
 }
 
 func (cm *Manager) Start(ctx context.Context) {
@@ -167,17 +213,20 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 	}
 	cm.convLock.RUnlock()
 
-	cm.channelConvLock.RLock()
-	if cc, ok := cm.channelConversations[m.ChannelId]; ok {
-		// Found channel conversations for channel ID
-		for _, c := range cc {
-			logrus.Debugf("Matched existing channel conversation: %#v", c)
-			conversations = append(conversations, c)
+	if !m.InThread {
+		cm.channelConvLock.RLock()
+		if cc, ok := cm.channelConversations[m.ChannelId]; ok {
+			// Found channel conversations for channel ID
+			for _, c := range cc {
+				logrus.Debugf("Matched existing channel conversation: %#v", c)
+				conversations = append(conversations, c)
+			}
 		}
+		cm.channelConvLock.RUnlock()
 	}
-	cm.channelConvLock.RUnlock()
 
-	for re, efs := range cm.patterns {
+	cm.triggerLock.RLock()
+	for re, efs := range cm.triggers {
 		if re.MatchString(m.Text) {
 			for _, ef := range efs {
 				engqs := engine.NewEngineQueues()
@@ -185,18 +234,19 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 
 				e := ef.Create(envmap, &engqs)
 				c := Conversation{
-					channelId:    m.ChannelId,
-					channelName:  m.ChannelName,
-					manager:      cm,
-					engine:       e,
-					engineQueues: engqs,
+					channelId:     m.ChannelId,
+					channelName:   m.ChannelName,
+					manager:       cm,
+					engine:        e,
+					engineFactory: ef,
+					engineQueues:  engqs,
 				}
 
 				if ef.Config().Threaded {
 					cm.addThreadedConversation(ctx, &c, m.ThreadId)
 					conversations = append(conversations, &c)
 				} else {
-					if cm.addChannelConversation(ctx, &c, m.ChannelId, ef.Id()) {
+					if cm.addChannelConversation(ctx, &c, m.ChannelId, ef.Config().Name) {
 						conversations = append(conversations, &c)
 					} else {
 						logrus.Debugf("Ignoring trigger as bot already active on channel: %s: %s: %#v",
@@ -206,6 +256,7 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 			}
 		}
 	}
+	cm.triggerLock.RUnlock()
 
 	return conversations
 }

@@ -2,33 +2,25 @@ package engine
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
 	"os/exec"
-	"path"
-	"strings"
-	"sync"
-	"time"
 
 	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 )
 
 type ExecEngine struct {
-	factory string
-	cmd     []string
-	env     map[string]string
-	comm    *EngineQueues
+	cmd  string
+	env  map[string]string
+	comm *EngineQueues
 }
 
 func (e ExecEngine) Start(ctx context.Context) {
 	defer e.done()
 
-	cmd := exec.Command(e.cmd[0], e.cmd[1:]...)
+	cmd := exec.Command(e.cmd)
 
 	cmd.Env = os.Environ()
 	for k, v := range e.env {
@@ -108,106 +100,25 @@ func (e *ExecEngine) done() {
 }
 
 type ExecEngineFactory struct {
-	cmd    []string
-	config EngineConfig
+	config *Config
 }
 
-func (eef ExecEngineFactory) Id() string {
-	return "EXEC:" + strings.Join(eef.cmd, " ")
-}
-
-func (eef ExecEngineFactory) Config() EngineConfig {
+func (eef ExecEngineFactory) Config() *Config {
 	return eef.config
 }
 
 func (eef ExecEngineFactory) Create(env map[string]string, comm *EngineQueues) Enginer {
 	return ExecEngine{
-		factory: eef.Id(),
-		cmd:     eef.cmd,
-		env:     env,
-		comm:    comm,
-	}
-}
-
-type ExecEngineFactoryLoader struct {
-	Dir string
-}
-
-func (eel ExecEngineFactoryLoader) Load(ctx context.Context) []EngineFactoryer {
-	var engines []EngineFactoryer
-	var lock = sync.RWMutex{}
-	var wg sync.WaitGroup
-
-	files, err := os.ReadDir(eel.Dir)
-	if err != nil {
-		logrus.Warnf("Failed to load engines: %s: %s", eel.Dir, err)
-		return engines
-	}
-
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
-	for _, f := range files {
-		wg.Add(1)
-
-		f := f
-		go func() {
-			defer wg.Done()
-
-			execPath := path.Join(eel.Dir, f.Name())
-			logrus.Debugf("Executing command: %s --config", execPath)
-			cmd := exec.CommandContext(ctx, execPath, "--config")
-
-			var outb, errb bytes.Buffer
-			cmd.Stdout = &outb
-			cmd.Stderr = &errb
-
-			if err := cmd.Run(); err != nil {
-				switch exitError := err.(type) {
-				case *exec.ExitError:
-					logrus.Warnf("Command exited with error: %s: %d", execPath, exitError.ExitCode())
-				case *fs.PathError:
-					logrus.Warnf("Error executing file: %s: %s", execPath, exitError.Error())
-				default:
-					logrus.Warnf("Error running command: %s: %#v", execPath, err)
-				}
-			} else {
-				if errb.Len() > 0 {
-					logrus.Warnf("%s --config: error: %s", execPath, errb.String())
-				}
-
-				// Defaults
-				config := EngineConfig{
-					Threaded: true,
-				}
-
-				err = yaml.Unmarshal(outb.Bytes(), &config)
-				if err != nil {
-					logrus.Warnf("Error parsing config: %s: %s: %v", execPath, outb.String(), err)
-				}
-
-				eef := ExecEngineFactory{
-					cmd:    []string{execPath},
-					config: config,
-				}
-
-				lock.Lock()
-				engines = append(engines, eef)
-				lock.Unlock()
-			}
-		}()
-	}
-
-	logrus.Debugf("Waiting for bot engines to load")
-	wg.Wait()
-
-	return engines
-}
-
-func NewExecEngine(cmd []string, env map[string]string, comm *EngineQueues) *ExecEngine {
-	return &ExecEngine{
-		cmd:  cmd,
+		cmd:  eef.config.Handler,
 		env:  env,
 		comm: comm,
+	}
+}
+
+type ExecEngineFactoryLoader struct{}
+
+func (eel ExecEngineFactoryLoader) Load(ctx context.Context, config *Config) EngineFactoryer {
+	return ExecEngineFactory{
+		config: config,
 	}
 }
