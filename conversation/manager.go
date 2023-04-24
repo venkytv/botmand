@@ -229,6 +229,22 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 	for re, efs := range cm.triggers {
 		if re.MatchString(m.Text) {
 			for _, ef := range efs {
+				// If list of channels is specified, only create conversation
+				// if channel is in list
+				if len(ef.Config().Channels) > 0 {
+					found := false
+					for _, channel := range ef.Config().Channels {
+						if channel == m.ChannelName {
+							found = true
+							break
+						}
+					}
+					if !found {
+						logrus.Debugf("Skipping %s trigger for channel %s", ef.Config().Name, m.ChannelName)
+						continue
+					}
+				}
+
 				engqs := engine.NewEngineQueues()
 				envmap := cm.getEngineEnvironment(m)
 
