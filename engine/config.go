@@ -14,13 +14,14 @@ import (
 var validate *validator.Validate
 
 type Config struct {
-	Name        string            `yaml:"name"`
-	Handler     string            `yaml:"handler" validate:"required"`
-	Environment map[string]string `yaml:"environment"`
-	Engine      string            `yaml:"engine" default:"executable"`
-	Triggers    []string          `yaml:"triggers" default"[\".\"]"`
-	Channels    []string          `yaml:"channels"`
-	Threaded    bool              `yaml:"threaded" default:"true"`
+	Name               string            `yaml:"name"`
+	Handler            string            `yaml:"handler" validate:"required"`
+	Environment        map[string]string `yaml:"environment"`
+	Engine             string            `yaml:"engine" default:"executable"`
+	Triggers           []string          `yaml:"triggers" default"[\".\"]"`
+	Channels           []string          `yaml:"channels"`
+	Threaded           bool              `yaml:"threaded" default:"true"`
+	DirectMessagesOnly bool              `yaml:"direct-messages-only" default:"true"`
 }
 
 func ConfigInit() {

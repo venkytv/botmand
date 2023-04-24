@@ -62,10 +62,11 @@ type SlackBackend struct {
 	api  SlackApier
 	comm *BackendQueues
 
-	me        string
-	chanCache map[string]*slack.Channel
-	sanitiser func(*message.Message) *message.Message
-	msgCache  *bigcache.BigCache
+	me          string
+	atMePattern *regexp.Regexp
+	chanCache   map[string]*slack.Channel
+	sanitiser   func(*message.Message) *message.Message
+	msgCache    *bigcache.BigCache
 }
 
 func NewSlackBackend(api SlackApier, comm *BackendQueues) *SlackBackend {
@@ -78,9 +79,10 @@ func NewSlackBackend(api SlackApier, comm *BackendQueues) *SlackBackend {
 		api:  api,
 		comm: comm,
 
-		chanCache: make(map[string]*slack.Channel),
-		sanitiser: func(m *message.Message) *message.Message { return m },
-		msgCache:  msgCache,
+		atMePattern: regexp.MustCompile(`^$`),
+		chanCache:   make(map[string]*slack.Channel),
+		sanitiser:   func(m *message.Message) *message.Message { return m },
+		msgCache:    msgCache,
 	}
 }
 
@@ -98,13 +100,14 @@ func (s SlackBackend) newMessage(ev *slack.MessageEvent, cc *slack.Channel) *mes
 	}
 
 	return &message.Message{
-		Text:        ev.Text,
-		User:        ev.User,
-		ChannelId:   ev.Channel,
-		ChannelName: cc.Name,
-		ThreadId:    thread,
-		InThread:    inThread,
-		Locale:      cc.Locale,
+		Text:          ev.Text,
+		User:          ev.User,
+		ChannelId:     ev.Channel,
+		ChannelName:   cc.Name,
+		ThreadId:      thread,
+		InThread:      inThread,
+		DirectMessage: s.atMePattern.MatchString(ev.Text),
+		Locale:        cc.Locale,
 	}
 }
 
@@ -123,6 +126,9 @@ func (s *SlackBackend) Read() {
 			logrus.Debug("Connection counter: ", ev.ConnectionCount)
 			s.me = ev.Info.User.ID
 			logrus.Info("I am ", s.me)
+
+			// Set up regex to recognise @mentions of bot
+			s.atMePattern = regexp.MustCompile(fmt.Sprintf(`<@%s>`, s.me))
 
 			// Set up the sanitiser to remove references to bot ID in message
 			logrus.Debug("Setting up message sanitiser")

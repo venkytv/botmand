@@ -229,18 +229,26 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 	for re, efs := range cm.triggers {
 		if re.MatchString(m.Text) {
 			for _, ef := range efs {
+				config := ef.Config()
+
+				// Respond only to direct messages unless trigger is global
+				if config.DirectMessagesOnly && !m.DirectMessage {
+					logrus.Debugf("Skipping %s trigger for non-direct message", config.Name)
+					continue
+				}
+
 				// If list of channels is specified, only create conversation
 				// if channel is in list
-				if len(ef.Config().Channels) > 0 {
+				if len(config.Channels) > 0 {
 					found := false
-					for _, channel := range ef.Config().Channels {
+					for _, channel := range config.Channels {
 						if channel == m.ChannelName {
 							found = true
 							break
 						}
 					}
 					if !found {
-						logrus.Debugf("Skipping %s trigger for channel %s", ef.Config().Name, m.ChannelName)
+						logrus.Debugf("Skipping %s trigger for channel %s", config.Name, m.ChannelName)
 						continue
 					}
 				}
@@ -249,7 +257,7 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 				envmap := cm.getEngineEnvironment(m)
 
 				// Add engine factory environment variables
-				for k, v := range ef.Config().Environment {
+				for k, v := range config.Environment {
 					envmap[k] = v
 				}
 
@@ -264,11 +272,11 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 					engineQueues:  engqs,
 				}
 
-				if ef.Config().Threaded {
+				if config.Threaded {
 					cm.addThreadedConversation(ctx, &c, m.ThreadId)
 					conversations = append(conversations, &c)
 				} else {
-					if cm.addChannelConversation(ctx, &c, m.ChannelId, ef.Config().Name) {
+					if cm.addChannelConversation(ctx, &c, m.ChannelId, config.Name) {
 						conversations = append(conversations, &c)
 					} else {
 						logrus.Debugf("Ignoring trigger as bot already active on channel: %s: %s: %#v",
