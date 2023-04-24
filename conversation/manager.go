@@ -248,7 +248,13 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 				engqs := engine.NewEngineQueues()
 				envmap := cm.getEngineEnvironment(m)
 
+				// Add engine factory environment variables
+				for k, v := range ef.Config().Environment {
+					envmap[k] = v
+				}
+
 				e := ef.Create(envmap, &engqs)
+
 				c := Conversation{
 					channelId:     m.ChannelId,
 					channelName:   m.ChannelName,
