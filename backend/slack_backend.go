@@ -17,8 +17,10 @@ type SlackApier interface {
 	ChannelInfo(channel string) *slack.Channel
 	GetEvents() chan slack.RTMEvent
 	PostMessage(channel string, msgOptions ...slack.MsgOption) (string, error)
+	PostTypingIndicator(channel string)
 }
 
+// SlackApi implements the SlackApier interface
 type SlackApi struct {
 	client *slack.Client
 	rtm    *slack.RTM
@@ -42,6 +44,10 @@ func (s SlackApi) GetEvents() chan slack.RTMEvent {
 func (s SlackApi) PostMessage(channel string, msgOptions ...slack.MsgOption) (string, error) {
 	_, timestamp, err := s.client.PostMessage(channel, msgOptions...)
 	return timestamp, err
+}
+
+func (s SlackApi) PostTypingIndicator(channel string) {
+	s.rtm.SendMessage(s.rtm.NewTypingMessage(channel))
 }
 
 func NewSlackApi(token string, debug bool) SlackApi {
@@ -198,6 +204,12 @@ func (s SlackBackend) Post() {
 			return
 		}
 		logrus.Debugf("Got response: %#v", msg)
+
+		if msg.Text == "..." {
+			// Send a typing indicator
+			s.api.PostTypingIndicator(msg.ChannelId)
+			continue
+		}
 
 		msgOptions := []slack.MsgOption{
 			slack.MsgOptionText(msg.Text, false),
