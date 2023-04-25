@@ -90,6 +90,31 @@ func main() {
 	be := backend.NewSlackBackend(&api, &beqs)
 	cm := conversation.NewManager(ctx, cfg, be, beqs)
 
+	// Set up signal handling
+	go func(ctx context.Context, cm *conversation.Manager, cfg *config.Config) {
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+
+		for {
+			select {
+			case sig := <-sigs:
+				logrus.Debug("Caught signal: ", sig)
+				switch sig {
+				case syscall.SIGHUP:
+					logrus.Info("Reloading engines")
+					cm.LoadEngines(ctx, cfg)
+					continue
+				}
+
+			case <-ctx.Done():
+				logrus.Debug("Shutting down")
+			}
+
+			os.Exit(0)
+		}
+
+	}(ctx, cm, cfg)
+
 	go cm.Start(ctx)
 
 	<-done
