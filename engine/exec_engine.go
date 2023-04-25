@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"io"
@@ -11,94 +10,56 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// ExecEngine implements the Enginer interface
 type ExecEngine struct {
-	cmd  string
-	env  map[string]string
-	comm *EngineQueues
+	cmd     string
+	env     map[string]string
+	execCmd *exec.Cmd
 }
 
-func (e ExecEngine) Start(ctx context.Context) {
-	defer e.done()
+func (e *ExecEngine) Setup(ctx context.Context) (io.WriteCloser, io.ReadCloser, io.ReadCloser, error) {
+	e.execCmd = exec.Command(e.cmd)
 
-	cmd := exec.Command(e.cmd)
-
-	cmd.Env = os.Environ()
+	e.execCmd.Env = os.Environ()
 	for k, v := range e.env {
-		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", k, v))
+		e.execCmd.Env = append(e.execCmd.Env, fmt.Sprintf("%s=%s", k, v))
 	}
 
-	stdin, err := cmd.StdinPipe()
+	stdin, err := e.execCmd.StdinPipe()
 	if err != nil {
-		logrus.Error("Failed to open stdin pipe:", cmd, err)
-		return
+		logrus.Error("Failed to open stdin pipe:", e.execCmd, err)
+		return nil, nil, nil, err
 	}
 
-	stdout, err := cmd.StdoutPipe()
+	stdout, err := e.execCmd.StdoutPipe()
 	if err != nil {
-		logrus.Error("Failed to open stdout pipe:", cmd, err)
-		return
+		logrus.Error("Failed to open stdout pipe:", e.execCmd, err)
+		return nil, nil, nil, err
 	}
 
-	stderr, err := cmd.StderrPipe()
+	stderr, err := e.execCmd.StderrPipe()
 	if err != nil {
-		logrus.Error("Failed to open stderr pipe:", cmd, err)
-		return
+		logrus.Error("Failed to open stderr pipe:", e.execCmd, err)
+		return nil, nil, nil, err
 	}
 
-	if err = cmd.Start(); err != nil {
-		logrus.Error("Failed to start command:", cmd, err)
-		return
-	}
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	// Pipe input from WriteQ to the command
-	go func() {
-		defer stdin.Close()
-		for {
-			select {
-			case t := <-e.comm.WriteQ:
-				if _, err := io.WriteString(stdin, t+"\n"); err != nil {
-					logrus.Error("Failed to post message to command:", t, err)
-				}
-			case <-ctx.Done():
-				logrus.Debug("Closing stdin channel:", cmd)
-				return
-			}
-		}
-	}()
-
-	// Pipe output of comand to ReadQ
-	go func() {
-		scanner := bufio.NewScanner(stdout)
-		for scanner.Scan() {
-			t := scanner.Text()
-			e.comm.ReadQ <- t
-		}
-		logrus.Debug("Stdout closed:", cmd)
-	}()
-
-	// Log command stderr
-	go func() {
-		scanner := bufio.NewScanner(stderr)
-		for scanner.Scan() {
-			t := scanner.Text()
-			logrus.Errorf("Error: %#v: %s", cmd, t)
-		}
-		logrus.Debug("Stderr closed:", cmd)
-	}()
-
-	err = cmd.Wait()
-	logrus.Debug("Command done:", cmd, err)
+	logrus.Debugf("Engine setup complete: %#v", e)
+	return stdin, stdout, stderr, nil
 }
 
-func (e *ExecEngine) done() {
-	logrus.Debug("Closing engine channels")
-	close(e.comm.ReadQ)
-	close(e.comm.WriteQ)
+func (e ExecEngine) Start(ctx context.Context) error {
+	if err := e.execCmd.Start(); err != nil {
+		logrus.Error("Failed to start command:", e.execCmd, err)
+		return err
+	}
+	return nil
 }
 
+func (e ExecEngine) Wait(ctx context.Context) error {
+	return e.execCmd.Wait()
+}
+
+// ExecEngineFactory implements the EngineFactoryer interface
 type ExecEngineFactory struct {
 	config *Config
 }
@@ -107,14 +68,14 @@ func (eef ExecEngineFactory) Config() *Config {
 	return eef.config
 }
 
-func (eef ExecEngineFactory) Create(env map[string]string, comm *EngineQueues) Enginer {
-	return ExecEngine{
-		cmd:  eef.config.Handler,
-		env:  env,
-		comm: comm,
+func (eef ExecEngineFactory) Create(env map[string]string) Enginer {
+	return &ExecEngine{
+		cmd: eef.config.Handler,
+		env: env,
 	}
 }
 
+// ExecEngineFactoryLoader implements the EngineFactoryLoader interface
 type ExecEngineFactoryLoader struct{}
 
 func (eel ExecEngineFactoryLoader) Load(ctx context.Context, config *Config) EngineFactoryer {

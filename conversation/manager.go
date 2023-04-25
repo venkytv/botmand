@@ -83,11 +83,16 @@ func (cm *Manager) LoadEngines(ctx context.Context, cfg *config.Config) {
 			logrus.Warnf("Duplicate config name: %s", config.Name)
 			continue
 		}
+
+		factory, err := cm.registry.GetEngineFactory(ctx, config)
+		if err != nil {
+			logrus.Warnf("Failed to load engine factory: %s: %v", config_file, err)
+			continue
+		}
+		logrus.Debugf("Loaded engine factory: %#v", factory)
+
 		execEngineNames[config.Name] = true
 		logrus.Infof("Loaded bot: %s", config.Name)
-
-		factory := cm.registry.GetEngineFactory(ctx, config)
-		logrus.Debugf("Loaded engine factory: %#v", factory)
 
 		// Add triggers from config to the manager
 		for _, pattern := range config.Triggers {
@@ -132,7 +137,7 @@ func (cm *Manager) Start(ctx context.Context) {
 	}
 }
 
-func (cm *Manager) getEngineEnvironment(m *message.Message) map[string]string {
+func (cm *Manager) getEngineEnvironment(m *message.Message, env map[string]string) map[string]string {
 	envmap := make(map[string]string)
 	prefix := strings.ToUpper(globals.BotName)
 	envmap[prefix+"_CHANNEL"] = m.ChannelName
@@ -142,6 +147,10 @@ func (cm *Manager) getEngineEnvironment(m *message.Message) map[string]string {
 
 	if m.ThreadId != "" {
 		envmap[prefix+"_THREAD"] = m.ThreadId
+	}
+
+	for k, v := range env {
+		envmap[k] = v
 	}
 
 	return envmap
@@ -214,6 +223,12 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 	}
 	cm.convLock.RUnlock()
 
+	// Can't have multple bot conversations in a thread
+	// XXX: Or should we allow this?
+	if len(conversations) > 0 {
+		return conversations
+	}
+
 	if !m.InThread {
 		cm.channelConvLock.RLock()
 		if cc, ok := cm.channelConversations[m.ChannelId]; ok {
@@ -255,14 +270,9 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 				}
 
 				engqs := engine.NewEngineQueues()
-				envmap := cm.getEngineEnvironment(m)
+				envmap := cm.getEngineEnvironment(m, config.Environment)
 
-				// Add engine factory environment variables
-				for k, v := range config.Environment {
-					envmap[k] = v
-				}
-
-				e := ef.Create(envmap, &engqs)
+				e := ef.Create(envmap)
 
 				c := Conversation{
 					channelId:      m.ChannelId,

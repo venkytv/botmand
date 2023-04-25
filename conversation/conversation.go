@@ -1,7 +1,9 @@
 package conversation
 
 import (
+	"bufio"
 	"context"
+	"io"
 
 	"github.com/duh-uh/teabot/engine"
 	"github.com/duh-uh/teabot/message"
@@ -22,7 +24,7 @@ func (c *Conversation) Start(ctx context.Context) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	go c.engine.Start(ctx)
+	go c.LaunchEngine(ctx)
 
 	for {
 		select {
@@ -44,6 +46,72 @@ func (c *Conversation) Start(ctx context.Context) {
 			return
 		}
 	}
+}
+
+func (c *Conversation) LaunchEngine(ctx context.Context) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	stdin, stdout, stderr, err := c.engine.Setup(ctx)
+	if err != nil {
+		logrus.Error("Failed to setup engine:", err)
+		return
+	}
+
+	// Pipe input from WriteQ to the command
+	go func() {
+		defer stdin.Close()
+		for {
+			select {
+			case t := <-c.engineQueues.WriteQ:
+				if t == "" {
+					continue
+				}
+				if _, err := io.WriteString(stdin, t+"\n"); err != nil {
+					logrus.Errorf("Failed to post message to command: '%s' (%v)", t, err)
+				}
+			case <-ctx.Done():
+				logrus.Debug("Closing stdin channel")
+				return
+			}
+		}
+	}()
+
+	// Pipe output of command to ReadQ
+	go func() {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			t := scanner.Text()
+			c.engineQueues.ReadQ <- t
+		}
+		logrus.Debug("Closing stdout channel")
+	}()
+
+	// Log stderr
+	go func() {
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			t := scanner.Text()
+			logrus.Debug("Engine stderr:", t)
+		}
+		logrus.Debug("Closing stderr channel")
+	}()
+
+	// Start the engine
+	if err := c.engine.Start(ctx); err != nil {
+		logrus.Error("Failed to start engine:", err)
+		return
+	}
+
+	// Wait for the engine to finish
+	if err := c.engine.Wait(ctx); err != nil {
+		logrus.Error("Engine failed:", err)
+		return
+	}
+
+	// Close engine queues
+	close(c.engineQueues.ReadQ)
+	close(c.engineQueues.WriteQ)
 }
 
 func (c *Conversation) Post(m *message.Message) {

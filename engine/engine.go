@@ -2,15 +2,18 @@ package engine
 
 import (
 	"context"
+	"io"
 )
 
 type Enginer interface {
-	Start(context.Context)
+	Setup(context.Context) (io.WriteCloser, io.ReadCloser, io.ReadCloser, error)
+	Start(context.Context) error
+	Wait(context.Context) error
 }
 
 type EngineFactoryer interface {
 	Config() *Config
-	Create(env map[string]string, comm *EngineQueues) Enginer
+	Create(env map[string]string) Enginer
 }
 
 type EngineFactoryLoader interface {

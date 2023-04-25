@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"fmt"
 	"sync"
 )
 
@@ -25,14 +26,14 @@ func (er EngineRegistry) Register(name string, loader EngineFactoryLoader) {
 }
 
 // GetEngineFactory returns a EngineFactoryer for the given engine name
-func (er EngineRegistry) GetEngineFactory(ctx context.Context, config *Config) EngineFactoryer {
+func (er EngineRegistry) GetEngineFactory(ctx context.Context, config *Config) (EngineFactoryer, error) {
 	er.registryLock.RLock()
 	defer er.registryLock.RUnlock()
 
 	loader, ok := er.engines[config.Engine]
 	if !ok {
-		return nil
+		return nil, fmt.Errorf("Engine not found: %s", config.Engine)
 	}
 
-	return loader.Load(ctx, config)
+	return loader.Load(ctx, config), nil
 }
