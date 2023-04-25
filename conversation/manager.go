@@ -84,6 +84,7 @@ func (cm *Manager) LoadEngines(ctx context.Context, cfg *config.Config) {
 			continue
 		}
 		execEngineNames[config.Name] = true
+		logrus.Infof("Loaded bot: %s", config.Name)
 
 		factory := cm.registry.GetEngineFactory(ctx, config)
 		logrus.Debugf("Loaded engine factory: %#v", factory)
@@ -264,12 +265,12 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 				e := ef.Create(envmap, &engqs)
 
 				c := Conversation{
-					channelId:     m.ChannelId,
-					channelName:   m.ChannelName,
-					manager:       cm,
-					engine:        e,
-					engineFactory: ef,
-					engineQueues:  engqs,
+					channelId:      m.ChannelId,
+					channelName:    m.ChannelName,
+					manager:        cm,
+					engine:         e,
+					engineQueues:   engqs,
+					prefixUsername: config.PrefixUsername,
 				}
 
 				if config.Threaded {
@@ -283,6 +284,8 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 							c.channelName, m.Text, ef)
 					}
 				}
+
+				logrus.Debugf("New conversation with %s: %+v", config.Name, c)
 			}
 		}
 	}

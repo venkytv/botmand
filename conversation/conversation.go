@@ -9,20 +9,13 @@ import (
 )
 
 type Conversation struct {
-	threadId      string
-	channelId     string
-	channelName   string
-	manager       *Manager
-	engine        engine.Enginer
-	engineFactory engine.EngineFactoryer
-	engineQueues  engine.EngineQueues
-}
-
-func NewConversation(engine engine.Enginer, engineQueues engine.EngineQueues) *Conversation {
-	return &Conversation{
-		engine:       engine,
-		engineQueues: engineQueues,
-	}
+	threadId       string
+	channelId      string
+	channelName    string
+	manager        *Manager
+	engine         engine.Enginer
+	engineQueues   engine.EngineQueues
+	prefixUsername bool
 }
 
 func (c *Conversation) Start(ctx context.Context) {
@@ -54,5 +47,9 @@ func (c *Conversation) Start(ctx context.Context) {
 }
 
 func (c *Conversation) Post(m *message.Message) {
-	c.engineQueues.WriteQ <- m.Text
+	msg := m.Text
+	if c.prefixUsername {
+		msg = m.User + ": " + msg
+	}
+	c.engineQueues.WriteQ <- msg
 }

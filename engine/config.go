@@ -18,10 +18,11 @@ type Config struct {
 	Handler            string            `yaml:"handler" validate:"required"`
 	Environment        map[string]string `yaml:"environment"`
 	Engine             string            `yaml:"engine" default:"executable"`
-	Triggers           []string          `yaml:"triggers" default"[\".\"]"`
+	Triggers           []string          `yaml:"triggers" default:"[\".\"]"`
 	Channels           []string          `yaml:"channels"`
 	Threaded           bool              `yaml:"threaded" default:"true"`
 	DirectMessagesOnly bool              `yaml:"direct-messages-only" default:"true"`
+	PrefixUsername     bool              `yaml:"prefix-username" default:"false"`
 }
 
 func ConfigInit() {
