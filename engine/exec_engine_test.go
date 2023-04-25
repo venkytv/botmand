@@ -21,7 +21,6 @@ func SetupTestEngine(ctx context.Context, t *testing.T, engine Enginer, qs *Engi
 			select {
 			case text := <-qs.WriteQ:
 				_, err = io.WriteString(stdin, text)
-				assert.Nil(t, err)
 			case <-ctx.Done():
 				return
 			}

@@ -1,0 +1,33 @@
+name: Build teabot
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-bot:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      -
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      -
+        uses: actions/setup-go@v2
+      -
+        name: Lint
+        uses: golangci/golangci-lint-action@v2
+      -
+        name: Release
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
