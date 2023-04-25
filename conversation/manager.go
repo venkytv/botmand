@@ -140,6 +140,7 @@ func (cm *Manager) Start(ctx context.Context) {
 func (cm *Manager) getEngineEnvironment(m *message.Message, env map[string]string) map[string]string {
 	envmap := make(map[string]string)
 	prefix := strings.ToUpper(globals.BotName)
+	envmap[prefix+"_USER_ID"] = m.BotUser
 	envmap[prefix+"_CHANNEL"] = m.ChannelName
 	envmap[prefix+"_CHANNEL_ID"] = m.ChannelId
 	envmap[prefix+"_BACKEND_NAME"] = cm.backend.Name()

@@ -102,6 +102,7 @@ func (s SlackBackend) newMessage(ev *slack.MessageEvent, cc *slack.Channel) *mes
 	return &message.Message{
 		Text:          ev.Text,
 		User:          ev.User,
+		BotUser:       s.me,
 		ChannelId:     ev.Channel,
 		ChannelName:   cc.Name,
 		ThreadId:      thread,
