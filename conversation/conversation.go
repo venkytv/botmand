@@ -51,6 +51,11 @@ func (c *Conversation) Start(ctx context.Context) {
 func (c *Conversation) LaunchEngine(ctx context.Context) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+	defer func() {
+		logrus.Debug("Closing engine queues")
+		close(c.engineQueues.ReadQ)
+		close(c.engineQueues.WriteQ)
+	}()
 
 	stdin, stdout, stderr, err := c.engine.Setup(ctx)
 	if err != nil {
@@ -108,10 +113,6 @@ func (c *Conversation) LaunchEngine(ctx context.Context) {
 		logrus.Error("Engine failed:", err)
 		return
 	}
-
-	// Close engine queues
-	close(c.engineQueues.ReadQ)
-	close(c.engineQueues.WriteQ)
 }
 
 func (c *Conversation) Post(m *message.Message) {

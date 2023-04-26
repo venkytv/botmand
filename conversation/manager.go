@@ -294,8 +294,8 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 						conversations = append(conversations, &c)
 						logrus.Debugf("New channel conversation with %s: %+v", config.Name, c)
 					} else {
-						logrus.Debugf("Ignoring trigger as bot already active: channel='%s' msg='%s' trigger='%s'",
-							c.channelName, m.Text, re.String())
+						logrus.Debugf("Ignoring trigger as bot already active: %s: channel='%s' msg='%s' trigger='%s'",
+							config.Name, c.channelName, m.Text, re.String())
 					}
 				}
 
