@@ -12,7 +12,7 @@ import (
 	"github.com/duh-uh/teabot/globals"
 	"github.com/duh-uh/teabot/message"
 	"github.com/sirupsen/logrus"
-	"github.com/venkytv/go-config"
+	"github.com/urfave/cli/v2"
 )
 
 type Manager struct {
@@ -27,7 +27,7 @@ type Manager struct {
 	channelConvLock      *sync.RWMutex
 }
 
-func NewManager(ctx context.Context, cfg *config.Config, backend backend.Backender, backendQueues backend.BackendQueues) *Manager {
+func NewManager(ctx context.Context, cfg *cli.Context, backend backend.Backender, backendQueues backend.BackendQueues) *Manager {
 	engineRegistry := engine.NewEngineRegistry()
 
 	engineRegistry.Register("executable", engine.ExecEngineFactoryLoader{})
@@ -50,8 +50,8 @@ func NewManager(ctx context.Context, cfg *config.Config, backend backend.Backend
 }
 
 // Load engines from the config directory
-func (cm *Manager) LoadEngines(ctx context.Context, cfg *config.Config) {
-	config_dir := cfg.GetString("config-directory")
+func (cm *Manager) LoadEngines(ctx context.Context, cfg *cli.Context) {
+	config_dir := cfg.String("config-directory")
 
 	config_files, err := filepath.Glob(filepath.Join(config_dir, "*.yaml"))
 	if err != nil {
