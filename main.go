@@ -76,7 +76,7 @@ func main() {
 		apiTokenFile := cfg.GetString("slack-backend-token-file")
 		content, err := ioutil.ReadFile(apiTokenFile)
 		if err != nil {
-			logrus.Fatal("Failed to open config file:", apiTokenFile, err)
+			logrus.Fatalf("Failed to open slack token file: %s: %s", apiTokenFile, err)
 		}
 		apiToken = strings.TrimSpace(string(content))
 	}
