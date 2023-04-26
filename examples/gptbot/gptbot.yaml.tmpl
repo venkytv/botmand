@@ -1,0 +1,25 @@
+handler: @CONFIG_DIR@/gptbot.sh
+
+environment:
+  ###
+  ### Uncomment the OPENAI_API_KEY line below and set your OpenAI API key there.
+  ### See: https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key
+  ###
+  #OPENAI_API_KEY: <uncomment-and-set-api-key-here>
+
+  #MODEL: gpt-4   # Uses gpt-3.5-turbo by default
+  VERBOSE: no
+  SNARKY: no
+
+# Only respond in channels listed here
+channels:
+  - general
+
+# Userful for the bot to identify participants in conversation
+prefix-username: true
+
+# Respond directly in the channel
+threaded: false
+
+# Do not respond unless addressed directly
+direct-messages-only: false

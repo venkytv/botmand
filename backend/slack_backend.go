@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/allegro/bigcache/v3"
@@ -68,7 +69,8 @@ type SlackBackend struct {
 	api  SlackApier
 	comm *BackendQueues
 
-	me          string
+	botId       string
+	botName     string
 	atMePattern *regexp.Regexp
 	chanCache   map[string]*slack.Channel
 	sanitiser   func(*message.Message) *message.Message
@@ -108,7 +110,8 @@ func (s SlackBackend) newMessage(ev *slack.MessageEvent, cc *slack.Channel) *mes
 	return &message.Message{
 		Text:          ev.Text,
 		User:          ev.User,
-		BotUser:       s.me,
+		BotUserId:     s.botId,
+		BotUserName:   s.botName,
 		ChannelId:     ev.Channel,
 		ChannelName:   cc.Name,
 		ThreadId:      thread,
@@ -131,14 +134,15 @@ func (s *SlackBackend) Read() {
 		switch ev := msg.Data.(type) {
 		case *slack.ConnectedEvent:
 			logrus.Debug("Connection counter: ", ev.ConnectionCount)
-			s.me = ev.Info.User.ID
-			logrus.Info("I am ", s.me)
+			s.botId = ev.Info.User.ID
+			s.botName = ev.Info.User.Name
+			logrus.Infof("I am %s (%s)", s.botName, s.botId)
 
 			// Set up regex to recognise @mentions of bot
-			s.atMePattern = regexp.MustCompile(fmt.Sprintf(`<@%s>`, s.me))
+			s.atMePattern = regexp.MustCompile(fmt.Sprintf(`<@%s>`, s.botId))
 
 		case *slack.MessageEvent:
-			if s.me == "" {
+			if s.botId == "" {
 				logrus.Debug("Not connected yet!")
 				break
 			}
@@ -148,7 +152,7 @@ func (s *SlackBackend) Read() {
 				break
 			}
 
-			if ev.User == s.me {
+			if ev.User == s.botId {
 				if _, err := s.msgCache.Get(ev.Timestamp); err != nil {
 					// Found message in bot-generated message cache
 					logrus.Debugf("Ignoring my message: %#v", ev)
@@ -202,6 +206,9 @@ func (s SlackBackend) Post() {
 			s.api.PostTypingIndicator(msg.ChannelId)
 			continue
 		}
+
+		// Convert embedded \n to actual newlines
+		msg.Text = strings.ReplaceAll(msg.Text, `\n`, "\n")
 
 		msgOptions := []slack.MsgOption{
 			slack.MsgOptionText(msg.Text, false),
