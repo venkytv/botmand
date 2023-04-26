@@ -28,7 +28,7 @@ func main() {
 		logrus.Fatalf("Error getting user home directory: %v", err)
 	}
 
-	defaultTokenFile := path.Join(homedir, ".botters.token")
+	defaultTokenFile := path.Join(homedir, ".slack.token")
 	defaultBotDirectory := path.Join(homedir, "teabot-engines")
 
 	// Load config
