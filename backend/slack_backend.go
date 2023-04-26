@@ -137,14 +137,6 @@ func (s *SlackBackend) Read() {
 			// Set up regex to recognise @mentions of bot
 			s.atMePattern = regexp.MustCompile(fmt.Sprintf(`<@%s>`, s.me))
 
-			// Set up the sanitiser to remove references to bot ID in message
-			logrus.Debug("Setting up message sanitiser")
-			re := regexp.MustCompile(fmt.Sprintf(`^\s*<@%s>\s+`, s.me))
-			s.sanitiser = func(m *message.Message) *message.Message {
-				m.Text = re.ReplaceAllString(m.Text, "")
-				return m
-			}
-
 		case *slack.MessageEvent:
 			if s.me == "" {
 				logrus.Debug("Not connected yet!")
@@ -231,5 +223,6 @@ func (s SlackBackend) Post() {
 }
 
 func (s SlackBackend) Sanitize(m *message.Message) *message.Message {
-	return s.sanitiser(m)
+	// Do nothing
+	return m
 }

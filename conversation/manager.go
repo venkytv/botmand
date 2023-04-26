@@ -287,16 +287,17 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 				if config.Threaded {
 					cm.addThreadedConversation(ctx, &c, m.ThreadId)
 					conversations = append(conversations, &c)
+					logrus.Debugf("New threaded conversation with %s: %+v", config.Name, c)
 				} else {
 					if cm.addChannelConversation(ctx, &c, m.ChannelId, config.Name) {
 						conversations = append(conversations, &c)
+						logrus.Debugf("New channel conversation with %s: %+v", config.Name, c)
 					} else {
-						logrus.Debugf("Ignoring trigger as bot already active on channel: %s: %s: %#v",
-							c.channelName, m.Text, ef)
+						logrus.Debugf("Ignoring trigger as bot already active: channel='%s' msg='%s' trigger='%s'",
+							c.channelName, m.Text, re.String())
 					}
 				}
 
-				logrus.Debugf("New conversation with %s: %+v", config.Name, c)
 			}
 		}
 	}
