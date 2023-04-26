@@ -1,0 +1,37 @@
+# (Optional) Name of the bot.
+# If not specified, name is the config file name with the extension stripped.
+# Bot names need to be unique for each instance of teabot.
+name: foobot
+
+# (Mandatory) Path to the bot executable
+handler: /path/to/executable
+
+# (Optional) List of environment variables to be set in each bot instance.
+environment:
+  DEBUG: false
+  API_KEY: xxyyzz
+
+# (Optional) List of triggers (regexes) which activate this bot.
+# If not specified, bot is triggered by any message on the channel.
+triggers:
+  - hello                 # Case-sensitive regex match
+  - (?i)anybody there\?   # Case-insensitive regex match
+
+# (Optional) Have bot only respond to messages in channels listed here.
+# If not specified, respond on all channels the bot has been invited to.
+channels:
+  - general
+
+# (Optional) Flag to control if messages are prefixed by sender userID.
+# Useful if the bot needs to distinguish between participants in conversation.
+# Default is not to prefix the username.
+prefix-username: false
+
+# (Optional) Flag to control if bot responds in a thread.
+# Default is to respond in a thread.
+threaded: true
+
+# (Optional) Flag to control if bots receives only messages where it is 
+# explicitly mentioned.
+# This is the default behaviour.
+direct-messages-only: true
