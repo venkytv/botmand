@@ -130,6 +130,8 @@ func (s TestSlackApi) PostMessage(channel string, msgOptions ...slack.MsgOption)
 	return "", nil
 }
 
+func (s TestSlackApi) PostTypingIndicator(channel string) {}
+
 func TestRead(t *testing.T) {
 	var botUserId = "IAMALITTLESLACKBOT"
 	//var myMsgTimestamp = "3344556.77889"
@@ -201,7 +203,7 @@ func TestRead(t *testing.T) {
 	})
 
 	t.Run("BotUserID", func(t *testing.T) {
-		assert.Equal(t, botUserId, backend.me)
+		assert.Equal(t, botUserId, backend.botId)
 	})
 }
 
