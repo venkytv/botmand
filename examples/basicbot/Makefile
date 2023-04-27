@@ -14,3 +14,6 @@ $(CONFIG_DIR)/basicbot.sh: basicbot.sh
 
 $(CONFIG_DIR):
 	mkdir -p $@
+
+clean:
+	$(RM) $(CONFIG_DIR)/basicbot.yaml $(CONFIG_DIR)/basicbot.sh

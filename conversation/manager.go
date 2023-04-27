@@ -220,8 +220,12 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 	cm.convLock.RLock()
 	if c, ok := cm.conversations[m.ThreadId]; ok {
 		// Found conversation for message thread
-		logrus.Debugf("Matched existing conversation: %#v", c)
-		conversations = append(conversations, c)
+		if c.directMessagesOnly && !m.DirectMessage {
+			logrus.Debugf("Conversation is direct messages only, ignoring message: %#v", c)
+		} else {
+			logrus.Debugf("Matched existing conversation: %#v", c)
+			conversations = append(conversations, c)
+		}
 	}
 	cm.convLock.RUnlock()
 
@@ -236,8 +240,12 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 		if cc, ok := cm.channelConversations[m.ChannelId]; ok {
 			// Found channel conversations for channel ID
 			for _, c := range cc {
-				logrus.Debugf("Matched existing channel conversation: %#v", c)
-				conversations = append(conversations, c)
+				if c.directMessagesOnly && !m.DirectMessage {
+					logrus.Debugf("Conversation is direct messages only, ignoring message: %#v", c)
+				} else {
+					logrus.Debugf("Matched existing channel conversation: %#v", c)
+					conversations = append(conversations, c)
+				}
 			}
 		}
 		cm.channelConvLock.RUnlock()
@@ -250,7 +258,7 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 				config := ef.Config()
 
 				// Respond only to direct messages unless trigger is global
-				if config.DirectMessagesOnly && !m.DirectMessage {
+				if config.DirectMessageTriggersOnly && !m.DirectMessage {
 					logrus.Debugf("Skipping %s trigger for non-direct message", config.Name)
 					continue
 				}
@@ -277,12 +285,13 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 				e := ef.Create(envmap)
 
 				c := Conversation{
-					channelId:      m.ChannelId,
-					channelName:    m.ChannelName,
-					manager:        cm,
-					engine:         e,
-					engineQueues:   engqs,
-					prefixUsername: config.PrefixUsername,
+					channelId:          m.ChannelId,
+					channelName:        m.ChannelName,
+					manager:            cm,
+					engine:             e,
+					engineQueues:       engqs,
+					prefixUsername:     config.PrefixUsername,
+					directMessagesOnly: config.DirectMessagesOnly,
 				}
 
 				if config.Threaded {

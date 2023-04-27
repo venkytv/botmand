@@ -2,7 +2,7 @@ package backend
 
 import "github.com/duh-uh/teabot/message"
 
-const QBufferSize = 10
+const QBufferSize = 100
 
 type Backender interface {
 	Name() string

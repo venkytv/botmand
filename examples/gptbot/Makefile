@@ -21,3 +21,6 @@ $(CONFIG_DIR)/gptbot.sh: gptbot.sh.tmpl
 
 $(CONFIG_DIR):
 	mkdir -p $@
+
+clean:
+	$(RM) $(CONFIG_DIR)/gptbot.yaml $(CONFIG_DIR)/gptbot.sh

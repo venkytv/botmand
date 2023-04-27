@@ -11,13 +11,14 @@ import (
 )
 
 type Conversation struct {
-	threadId       string
-	channelId      string
-	channelName    string
-	manager        *Manager
-	engine         engine.Enginer
-	engineQueues   engine.EngineQueues
-	prefixUsername bool
+	threadId           string
+	channelId          string
+	channelName        string
+	manager            *Manager
+	engine             engine.Enginer
+	engineQueues       engine.EngineQueues
+	prefixUsername     bool
+	directMessagesOnly bool
 }
 
 func (c *Conversation) Start(ctx context.Context) {

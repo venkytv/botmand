@@ -17,6 +17,28 @@ triggers:
   - hello                 # Case-sensitive regex match
   - (?i)anybody there\?   # Case-insensitive regex match
 
+# (Optional) Flag to control if bot is triggered only by messages where it is
+# explicitly mentioned.
+# This is the default behaviour.
+#
+# NOTE: This flag applies only to messages that trigger the bot. Once a bot is
+#       active in a thread or a channel, it will receive all messages (by
+#       default) in the thread or channel until it terminates.
+#       See the "direct-messages-only" flag below to change that.
+#
+direct-message-triggers-only: true
+
+# (Optional) Flag to control if bot only receives messages where it is
+# explicitly mentioned.
+#
+# NOTE: This flag is set to false by default. Teabot bots are configured by
+#       default to receive ALL messages in the conversation once triggered.
+#
+# Setting this flag to true makes the bot behave like a traditional bot that
+# only receives direct messages, but it is more useful for a conversational bot
+# to read all messages and decide for itself which ones it wants to respond to.
+direct-messages-only: false  ## NOTE: When unset, defaults to "false"
+
 # (Optional) Have bot only respond to messages in channels listed here.
 # If not specified, respond on all channels the bot has been invited to.
 channels:
@@ -28,10 +50,14 @@ channels:
 prefix-username: false
 
 # (Optional) Flag to control if bot responds in a thread.
-# Default is to respond in a thread.
-threaded: true
-
-# (Optional) Flag to control if bots receives only messages where it is 
-# explicitly mentioned.
-# This is the default behaviour.
-direct-messages-only: true
+# Default is "false", which makes the bot respond in the channel (channel-bot
+# mode). If set to true, a new conversation, i.e., a new instance of the bot,
+# is started for every trigger, and the bot's responses are posted in a thread.
+# This mode is more suitable for short-lived transactional bots.
+# More than one threaded bot can be active in a channel at a time.
+#
+# NOTE: You almost always want a trigger to be specified when "threaded" is
+# true. Otherwise, you will end up with a new bot being started for every
+# message.
+#
+threaded: false

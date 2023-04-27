@@ -14,3 +14,6 @@ $(CONFIG_DIR)/cuckoobot.sh: cuckoobot.sh
 
 $(CONFIG_DIR):
 	mkdir -p $@
+
+clean:
+	$(RM) $(CONFIG_DIR)/cuckoobot.yaml $(CONFIG_DIR)/cuckoobot.sh
