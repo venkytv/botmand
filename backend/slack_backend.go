@@ -159,7 +159,10 @@ func (s *SlackBackend) Read() {
 					break
 				} else {
 					// Cache message for 1 minute
-					s.msgCache.Set(ev.Timestamp, nil)
+					err = s.msgCache.Set(ev.Timestamp, nil)
+					if err != nil {
+						logrus.Errorf("Failed to cache message: %s: %s", ev.Timestamp, err)
+					}
 				}
 			}
 
