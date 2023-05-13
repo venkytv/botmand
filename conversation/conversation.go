@@ -10,12 +10,20 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Conversation types
+const (
+	ConversationTypeThreaded = iota
+	ConversationTypeChannel
+)
+
 type Conversation struct {
+	conversationType   int
 	threadId           string
 	channelId          string
 	channelName        string
 	manager            *Manager
 	engine             engine.Enginer
+	engineName         string
 	engineQueues       engine.EngineQueues
 	prefixUsername     bool
 	directMessagesOnly bool
@@ -37,7 +45,7 @@ func (c *Conversation) Start(ctx context.Context) {
 					ChannelName: c.channelName,
 					ThreadId:    c.threadId,
 				}
-				c.manager.Post(m)
+				c.manager.Post(c, m)
 			} else {
 				logrus.Debug("Done with conversation")
 				return

@@ -157,6 +157,9 @@ func (s *SlackBackend) Read() {
 					// Found message in bot-generated message cache
 					logrus.Debugf("Ignoring my message: %#v", ev)
 					break
+				} else {
+					// Cache message for 1 minute
+					s.msgCache.Set(ev.Timestamp, nil)
 				}
 			}
 
@@ -221,10 +224,9 @@ func (s SlackBackend) Post() {
 			logrus.Error("PostMessage error: ", err)
 		}
 
-		// Cache bot messages for a minute
-		err = s.msgCache.Set(timestamp, nil)
-		if err != nil {
-			logrus.Error("Error caching message timestamp: ", err)
+		if msg.NeedThreadId {
+			logrus.Debugf("Returning thread ID %s on channel", timestamp)
+			msg.ThreadIdChan <- timestamp
 		}
 	}
 }

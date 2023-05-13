@@ -11,4 +11,7 @@ type Message struct {
 	InThread      bool
 	DirectMessage bool
 	Locale        string
+
+	NeedThreadId bool
+	ThreadIdChan chan string
 }

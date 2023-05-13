@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	BotName = "teabot"
+	BotName      = "botters"
+	BotUrlScheme = BotName + "://"
 )
 
 var (
