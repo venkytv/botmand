@@ -25,3 +25,10 @@ If `teabot` is already running, make it reload its engines:
 ```
 pkill -HUP teabot
 ```
+
+### Usage
+
+At any point in any channel the bot is listening in (by default, #general),
+send a directed message to the bot asking it any question. The bot uses the
+last few messages in the conversation along with the question and uses OpenAI
+to generate a response.

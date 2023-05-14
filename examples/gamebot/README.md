@@ -23,3 +23,8 @@ If `teabot` is already running, make it reload its engines:
 ```
 pkill -HUP teabot
 ```
+
+### Usage
+
+The bot is triggered in any channel it is in by a directed message which
+the word "game" in it.

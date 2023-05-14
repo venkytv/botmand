@@ -1,4 +1,4 @@
-## Basic bot engine
+## Mention bot engine
 
 A simple channel bot that listens for a specific word to be mentioned in the
 channel and responds with the time since the words was last mentioned.
@@ -17,3 +17,9 @@ If `teabot` is already running, make it reload its engines:
 ```
 pkill -HUP teabot
 ```
+
+### Usage
+
+The bot listens for any mention of the specified string ("ChatGPT" by default)
+and prints a note about how long it has been since that string was last
+mentioned in the channel.

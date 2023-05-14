@@ -21,3 +21,8 @@ If `teabot` is already running, make it reload its engines:
 ```
 pkill -HUP teabot
 ```
+
+### Usage
+
+Once installed, go to a channel the bot is installed in and type a directed
+message at the bot saying "what is the time?".

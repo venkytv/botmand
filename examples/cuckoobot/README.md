@@ -17,3 +17,9 @@ If `teabot` is already running, make it reload its engines:
 ```
 pkill -HUP teabot
 ```
+
+### Usage
+
+The bot needs no interaction. It is activated in every channel it is present in
+by any messages there, and once activated, it will print out a "cuckoo" on the
+hour every hour.
