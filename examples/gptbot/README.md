@@ -1,4 +1,4 @@
-## Basic bot engine
+## GPT chat bot engine
 
 A simple GPT bot which, when asked directly, participates in the conversation
 using previous messages in the conversation as context.

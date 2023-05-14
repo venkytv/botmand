@@ -1,4 +1,4 @@
-## Basic bot engine
+## Cuckoo bot engine
 
 A simple bot which prints the message "cuckoo" on the hour every hour in any
 channel it is invited into.
