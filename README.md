@@ -39,7 +39,7 @@ at the [gptbot](examples/gptbot) and [genbot](examples/genbot) examples.
 
 ## Installation
 
-* Download the [latest release](releases/latest) of teabot for your platform.
+* Download the [latest release](../../releases/latest) of teabot for your platform.
 * Extract the archive
 
 ## Quickstart
