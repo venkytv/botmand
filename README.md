@@ -31,3 +31,46 @@ done
 ```
 
 See [examples](examples) for more examples.
+
+Botters is designed primarily for supporting conversational bots, which
+incidentally happens to be how most current AI chatbots are set up. For
+examples of how you can use Botters to develop AI-powered chatbots, have a look
+at the [gptbot](examples/gptbot) and [genbot](examples/genbot) examples.
+
+## Installation
+
+* Download the [latest release](releases/latest) of teabot for your platform.
+* Extract the archive
+
+## Quickstart
+
+### Generate a Slack classic app bot token
+
+1. Create a Classic Slack app: https://api.slack.com/apps?new_classic_app=1
+2. Click on "App Home" in the left sidebar to get to the bot creation page.
+3. Click on the "Add Legacy Bot User" button.
+4. Set a display name and user name for the bot and add the bot.
+5. Click on "Install to Workspace" and allow the bot access to the workspace.
+6. At this point, you should see the "OAuth Tokens" for your workspace.
+    There are two tokens displayed, but you just need the "Bot User OAuth Token" which
+    should start with the string `xoxb-`.
+7. Copy this token to the file `.slack.token` in your home directory.
+
+### Set up the example basicbot
+
+```bash
+git clone https://github.com/venkytv/teabot.git
+cd teabot/examples/basicbot
+make install
+```
+
+### Invite the Slack bot to a channel in your workspace
+
+Go to a channel in Slack and either use the `/invite` command, or just message
+the new Slack bot to invite it to the channel.
+
+### Start teabot
+
+```bash
+./teabot
+```
