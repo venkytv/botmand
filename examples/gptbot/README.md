@@ -11,6 +11,10 @@ Once invited to a channel, the bot keeps track of the current conversation.
 When it encounters a message mentioning it, it responds using GPT to generate
 the response.
 
+Note that while the bot keeps track of the current conversation
+even if it is not directly mentioned in the messages, it does **NOT** send
+anything to OpenAI until it is specifically menioned in the conversation.
+
 ### Installation
 
 ```
@@ -29,6 +33,6 @@ pkill -HUP teabot
 ### Usage
 
 At any point in any channel the bot is listening in (by default, #general),
-send a directed message to the bot asking it any question. The bot uses the
-last few messages in the conversation along with the question and uses OpenAI
-to generate a response.
+send a message to the bot by @mentioning it and ask it any question. The bot
+uses the last few messages in the conversation along with the question and uses
+OpenAI to generate a response.

@@ -40,7 +40,7 @@ at the [gptbot](examples/gptbot) and [genbot](examples/genbot) examples.
 ## Installation
 
 * Download the [latest release](../../releases/latest) of teabot for your platform.
-* Extract the archive
+* Extract the archive and move the `teabot` executable to a directory of your choice.
 
 ## Quickstart
 
@@ -71,6 +71,25 @@ the new Slack bot to invite it to the channel.
 
 ### Start teabot
 
+Launch `teabot` from the directory you moved it to.
+
 ```bash
 ./teabot
 ```
+
+### Start a conversation
+
+Send a "hello" message mentioning the bot name. The bot should respond in a
+thread echoing what you said. And then continue echoing whatever you say in the
+thread until you say "bye".
+
+### Explore more real-world bots
+
+* [gptbot](examples/gptbot): An AI chat assistant which can participate in the
+  conversation when asked to.
+* [genbot](examples/genbot): An AI assistant which can generate shell scripts
+  for requested tasks and run them within the bot.
+
+### Write your own bot
+
+Have a look at the [examples](examples) and write your own bot.
