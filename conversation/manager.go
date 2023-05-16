@@ -9,12 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/duh-uh/teabot/backend"
-	"github.com/duh-uh/teabot/engine"
-	"github.com/duh-uh/teabot/globals"
-	"github.com/duh-uh/teabot/message"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
+	"github.com/venkytv/botters/backend"
+	"github.com/venkytv/botters/engine"
+	"github.com/venkytv/botters/globals"
+	"github.com/venkytv/botters/message"
 )
 
 type Manager struct {

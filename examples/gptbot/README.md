@@ -22,12 +22,17 @@ make install
 ```
 
 This copies the bot's config as well as the bot script to the
-default config directory: `~/teabot-engines`.
+default config directory: `~/botters-engines`.
 
-If `teabot` is already running, make it reload its engines:
+Edit `~/botters-engines/gptbot.yaml` and set the `OPENAI_API_KEY` variable.
+Check [OpenAI documentation](https://openai.com/blog/openai-api) on signing up
+for the API and [retrieving your API
+key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key).
+
+If `botters` is already running, make it reload its engines:
 
 ```
-pkill -HUP teabot
+pkill -HUP botters
 ```
 
 ### Usage

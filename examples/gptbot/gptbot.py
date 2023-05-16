@@ -14,8 +14,8 @@ import tiktoken
 import time
 from typing import Deque, List
 
-BOT_ID = os.environ["TEABOT_USER_ID"]   # mandatory
-BOT_NAME = os.environ.get("TEABOT_USER_NAME", "Teabot")
+BOT_ID = os.environ["BOTTERS_USER_ID"]   # mandatory
+BOT_NAME = os.environ.get("BOTTERS_USER_NAME", "Botters")
 
 MODEL_NAME = os.environ.get("MODEL_NAME", "gpt-3.5-turbo")
 TEMPERATURE = int(os.environ.get("MODEL_TEMPERATURE", 0.6))

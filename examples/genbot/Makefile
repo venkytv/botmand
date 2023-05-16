@@ -1,4 +1,4 @@
-CONFIG_DIR = $(HOME)/teabot-engines
+CONFIG_DIR = $(HOME)/botters-engines
 VENV_DIR = $(CONFIG_DIR)/genbot-venv
 
 all:

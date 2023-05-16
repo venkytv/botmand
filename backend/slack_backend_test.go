@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/duh-uh/teabot/message"
 	"github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"github.com/stretchr/testify/assert"
+	"github.com/venkytv/botters/message"
 )
 
 const (

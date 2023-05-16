@@ -1,6 +1,6 @@
 package backend
 
-import "github.com/duh-uh/teabot/message"
+import "github.com/venkytv/botters/message"
 
 const QBufferSize = 100
 

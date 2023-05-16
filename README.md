@@ -39,8 +39,8 @@ at the [gptbot](examples/gptbot) and [genbot](examples/genbot) examples.
 
 ## Installation
 
-* Download the [latest release](../../releases/latest) of teabot for your platform.
-* Extract the archive and move the `teabot` executable to a directory of your choice.
+* Download the [latest release](../../releases/latest) of botters for your platform.
+* Extract the archive and move the `botters` executable to a directory of your choice.
 
 ## Quickstart
 
@@ -59,8 +59,8 @@ at the [gptbot](examples/gptbot) and [genbot](examples/genbot) examples.
 ### Set up the example basicbot
 
 ```bash
-git clone https://github.com/venkytv/teabot.git
-cd teabot/examples/basicbot
+git clone https://github.com/venkytv/botters.git
+cd botters/examples/basicbot
 make install
 ```
 
@@ -69,12 +69,12 @@ make install
 Go to a channel in Slack and either use the `/invite` command, or just message
 the new Slack bot to invite it to the channel.
 
-### Start teabot
+### Start botters
 
-Launch `teabot` from the directory you moved it to.
+Launch `botters` from the directory you moved it to.
 
 ```bash
-./teabot
+./botters
 ```
 
 ### Start a conversation

@@ -1,5 +1,5 @@
-CONFIG_DIR = $(HOME)/teabot-engines
-IMAGE_NAME = teabot-gptbot
+CONFIG_DIR = $(HOME)/botters-engines
+IMAGE_NAME = botters-gptbot
 
 all:
 	@echo "Run \"make install\" to build docker image and install the gptbot engine"
