@@ -92,4 +92,5 @@ thread until you say "bye".
 
 ### Write your own bot
 
-Have a look at the [examples](examples) and write your own bot.
+The [bot writing guide](BOT-WRITING-GUIDE.md) has details on writing bots.  You
+could also have a look at the included [example bots](examples).
