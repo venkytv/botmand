@@ -1,4 +1,4 @@
-CONFIG_DIR = $(HOME)/teabot-engines
+CONFIG_DIR = $(HOME)/botters-engines
 
 all:
 	@echo Run \"make install\" to install the gamebot engine

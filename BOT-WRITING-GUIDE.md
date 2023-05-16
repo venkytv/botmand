@@ -28,7 +28,7 @@ done
 
 The bot can be located anywhere as long as it is executable by the user Botters
 is running as.  Botters loads bots using config files located (by default) in
-`~/teabot-engines`.
+`~/botters-engines`.
 
 Each bot needs a config file which configures the bot's behaviour. The config
 file for the bot above could be:

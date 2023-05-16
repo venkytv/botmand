@@ -12,11 +12,11 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/duh-uh/teabot/backend"
-	"github.com/duh-uh/teabot/conversation"
-	"github.com/duh-uh/teabot/globals"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
+	"github.com/venkytv/botters/backend"
+	"github.com/venkytv/botters/conversation"
+	"github.com/venkytv/botters/globals"
 
 	"github.com/urfave/cli/v2"
 )
@@ -57,7 +57,7 @@ func main() {
 	}
 
 	defaultTokenFile := path.Join(homedir, ".slack.token")
-	defaultBotDirectory := path.Join(homedir, "teabot-engines")
+	defaultBotDirectory := path.Join(homedir, "botters-engines")
 
 	app := &cli.App{
 		Name:    globals.BotName,

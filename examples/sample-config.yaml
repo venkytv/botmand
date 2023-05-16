@@ -1,6 +1,6 @@
 # (Optional) Name of the bot.
 # If not specified, name is the config file name with the extension stripped.
-# Bot names need to be unique for each instance of teabot.
+# Bot names need to be unique for each instance of botters.
 name: foobot
 
 # (Mandatory) Path to the bot executable
@@ -31,7 +31,7 @@ direct-message-triggers-only: true
 # (Optional) Flag to control if bot only receives messages where it is
 # explicitly mentioned.
 #
-# NOTE: This flag is set to false by default. Teabot bots are configured by
+# NOTE: This flag is set to false by default. Botters bots are configured by
 #       default to receive ALL messages in the conversation once triggered.
 #
 # Setting this flag to true makes the bot behave like a traditional bot that

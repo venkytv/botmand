@@ -5,9 +5,9 @@ import (
 	"context"
 	"io"
 
-	"github.com/duh-uh/teabot/engine"
-	"github.com/duh-uh/teabot/message"
 	"github.com/sirupsen/logrus"
+	"github.com/venkytv/botters/engine"
+	"github.com/venkytv/botters/message"
 )
 
 // Conversation types

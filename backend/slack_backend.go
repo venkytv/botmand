@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/allegro/bigcache/v3"
-	"github.com/duh-uh/teabot/message"
 	"github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
+	"github.com/venkytv/botters/message"
 )
 
 type SlackApier interface {

@@ -1,4 +1,4 @@
-module github.com/duh-uh/teabot
+module github.com/venkytv/botters
 
 go 1.18
 

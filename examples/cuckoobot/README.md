@@ -10,12 +10,12 @@ make install
 ```
 
 This copies the bot's config as well as the bot script to the
-default config directory: `~/teabot-engines`.
+default config directory: `~/botters-engines`.
 
-If `teabot` is already running, make it reload its engines:
+If `botters` is already running, make it reload its engines:
 
 ```
-pkill -HUP teabot
+pkill -HUP botters
 ```
 
 ### Usage
