@@ -130,7 +130,7 @@ func (c *Conversation) LaunchEngine(ctx context.Context) {
 
 func (c *Conversation) Post(m *message.Message) {
 	if c.convClosing {
-		logrus.Debug("Conversation is closing, not posting message: %#v: %s", c, m.Text)
+		logrus.Debugf("Conversation is closing, not posting message: %#v: %s", c, m.Text)
 		return
 	}
 	msg := m.Text
