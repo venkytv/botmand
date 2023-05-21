@@ -28,6 +28,7 @@ USERNAME: Message text
 
 Response format instructions:
 - Return a markdown code snippet which includes the shell script
+- BE CONCISE
 - Do NOT include instructions on how to run the shell script
 - Do NOT include instructions on how to build or run the docker image
 - Make sure there is a single markdown code snipper in the response, which includes the shell script and nothing else
@@ -98,8 +99,9 @@ For example:
 }
 ```
 
-Return just the JSON dict within a markdown code block. Do not include any explanations.
-Do NOT return a script which generates the output, but instead return the actual dict.
+- Return just the JSON dict within a markdown code block. Do not include any explanations.
+- BE CONCISE
+- Do NOT return a script which generates the output, but instead return the actual dict.
 '''
 
 dockerfile_tmpl = '''
@@ -205,7 +207,8 @@ def build_docker_image(script: str, conf: dict) -> (str, list, str):
     return docker_image_name, volumes, description
 
 def run_container(image: str, volumes: list[str], description: str):
-    cmd = ["docker", "run", "--rm", "-i"]
+    # Use image name as container name
+    cmd = ["docker", "run", "--name", image, "--rm", "-i"]
     for volume in volumes:
         cmd.extend(["-v", f"{volume}:{volume}:ro"])
     cmd.append(image)
@@ -227,6 +230,8 @@ def run_container(image: str, volumes: list[str], description: str):
         elif "genbot stop" in line:
             if f"genbot stop {pid}" in line:
                 print(f"Stopping genbot {pid}: {description}")
+                # Kill the container
+                subprocess.run(["docker", "kill", image], capture_output=True)
                 sys.exit()
             else:
                 # Stop command for another genbot
