@@ -328,6 +328,8 @@ func (cm *Manager) GetConversations(ctx context.Context, m *message.Message) []*
 	}
 	cm.triggerLock.RUnlock()
 
+	logrus.Debugf("Found %d conversations for message %s", len(conversations), m.Text)
+
 	return conversations
 }
 

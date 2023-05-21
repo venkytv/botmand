@@ -27,6 +27,9 @@ type Conversation struct {
 	engineQueues       engine.EngineQueues
 	prefixUsername     bool
 	directMessagesOnly bool
+
+	// Flag to indicate that the conversation is closing
+	convClosing bool
 }
 
 func (c *Conversation) Start(ctx context.Context) {
@@ -62,6 +65,7 @@ func (c *Conversation) LaunchEngine(ctx context.Context) {
 	defer cancel()
 	defer func() {
 		logrus.Debug("Closing engine queues")
+		c.convClosing = true
 		close(c.engineQueues.ReadQ)
 		close(c.engineQueues.WriteQ)
 	}()
@@ -125,6 +129,10 @@ func (c *Conversation) LaunchEngine(ctx context.Context) {
 }
 
 func (c *Conversation) Post(m *message.Message) {
+	if c.convClosing {
+		logrus.Debug("Conversation is closing, not posting message: %#v: %s", c, m.Text)
+		return
+	}
 	msg := m.Text
 	if c.prefixUsername {
 		msg = m.User + ": " + msg
