@@ -43,6 +43,18 @@ See the [sample config file](examples/sample-config.yaml) for details on all
 available options and defaults. The config files for the [examples](examples)
 also illustrate most common config options.
 
+## Environment variables
+
+The bot will have access to the following environment variables:
+
+* `BOTTERS_USER_ID`: ID of the bot user account; normally used to identify messages which mention the bot
+* `BOTTERS_USER_NAME` User name of the bot user account
+* `BOTTERS_CHANNEL`: Name of the channel this bot instance is running in
+* `BOTTERS_CHANNEL_ID`: ID of the channel this bot instance is running in
+* `BOTTERS_LOCALE`: Locale of the channel the bot is running in
+
+See [gptbot](examples/gptbot/gptbot.py) for an example of how a bot might use these variables.
+
 ## Botters commands
 
 Botters uses a `botters://` URL scheme for commands. A bot can include these
@@ -66,7 +78,7 @@ following commands are supported currently:
     message. The follow-up message will automatically create the thread in
     Slack.
 
-For example on using Botters commands, see [gamebot](examples/gamebot).
+For an example on using Botters commands, see [gamebot](examples/gamebot).
 
 ## Things to keep in mind
 
