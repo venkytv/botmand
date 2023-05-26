@@ -50,11 +50,12 @@ at the [gptbot](examples/gptbot) and [genbot](examples/genbot) examples.
 2. Click on "App Home" in the left sidebar to get to the bot creation page.
 3. Click on the "Add Legacy Bot User" button.
 4. Set a display name and user name for the bot and add the bot.
-5. Click on "Install to Workspace" and allow the bot access to the workspace.
-6. At this point, you should see the "OAuth Tokens" for your workspace.
+5. Click on "Install App" in the left sidebar.
+6. Click "Install to Workspace" and allow the bot access to the workspace.
+7. At this point, you should see the "OAuth Tokens" for your workspace.
     There are two tokens displayed, but you just need the "Bot User OAuth Token" which
     should start with the string `xoxb-`.
-7. Copy this token to the file `.slack.token` in your home directory.
+8. Copy this token to the file `.slack.token` in your home directory.
 
 ### Set up the example basicbot
 
