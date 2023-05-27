@@ -1,13 +1,13 @@
-# Botters Engine
+# BotManD Engine
 
-Botters is a bot engine designed to siplify the process of creating Slack bots.
-Botters bots handle a single conversation, reading input on stdin and writing
+BotManD is a bot engine designed to siplify the process of creating Slack bots.
+BotManD bots handle a single conversation, reading input on stdin and writing
 responses on stdout. (Think [inetd](https://en.wikipedia.org/wiki/Inetd) for
-Slack conversations.) Botters launches multiple instances of the bots on demand,
+Slack conversations.) BotManD launches multiple instances of the bots on demand,
 one for each individual conversation.  Conversations terminate when the bot
 exits.
 
-Botters bots can be very simple. This is the complete code for a working bot
+BotManD bots can be very simple. This is the complete code for a working bot
 which keeps track of when was the last time someone mentioned "ChatGPT" in the
 channel:
 
@@ -32,15 +32,15 @@ done
 
 See [examples](examples) for more examples.
 
-Botters is designed primarily for supporting conversational bots, which
+BotManD is designed primarily for supporting conversational bots, which
 incidentally happens to be how most current AI chatbots are set up. For
-examples of how you can use Botters to develop AI-powered chatbots, have a look
+examples of how you can use BotManD to develop AI-powered chatbots, have a look
 at the [gptbot](examples/gptbot) and [genbot](examples/genbot) examples.
 
 ## Installation
 
-* Download the [latest release](../../releases/latest) of botters for your platform.
-* Extract the archive and move the `botters` executable to a directory of your choice.
+* Download the [latest release](../../releases/latest) of botmand for your platform.
+* Extract the archive and move the `botmand` executable to a directory of your choice.
 
 ## Quickstart
 
@@ -60,8 +60,8 @@ at the [gptbot](examples/gptbot) and [genbot](examples/genbot) examples.
 ### Set up the example basicbot
 
 ```bash
-git clone https://github.com/venkytv/botters.git
-cd botters/examples/basicbot
+git clone https://github.com/venkytv/botmand.git
+cd botmand/examples/basicbot
 make install
 ```
 
@@ -70,12 +70,12 @@ make install
 Go to a channel in Slack and either use the `/invite` command, or just message
 the new Slack bot to invite it to the channel.
 
-### Start botters
+### Start botmand
 
-Launch `botters` from the directory you moved it to.
+Launch `botmand` from the directory you moved it to.
 
 ```bash
-./botters
+./botmand
 ```
 
 ### Start a conversation
@@ -95,3 +95,9 @@ thread until you say "bye".
 
 The [bot writing guide](BOT-WRITING-GUIDE.md) has details on writing bots.  You
 could also have a look at the included [example bots](examples).
+
+## Building from Source
+
+```bash
+go build
+```

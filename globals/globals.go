@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	BotName      = "botters"
+	BotName      = "botmand"
 	BotUrlScheme = BotName + "://"
 )
 

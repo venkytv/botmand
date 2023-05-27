@@ -1,4 +1,4 @@
-CONFIG_DIR = $(HOME)/botters-engines
+CONFIG_DIR = $(HOME)/botmand-engines
 VENV_DIR = $(CONFIG_DIR)/genbot-venv
 
 all:

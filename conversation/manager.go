@@ -11,10 +11,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-	"github.com/venkytv/botters/backend"
-	"github.com/venkytv/botters/engine"
-	"github.com/venkytv/botters/globals"
-	"github.com/venkytv/botters/message"
+	"github.com/venkytv/botmand/backend"
+	"github.com/venkytv/botmand/engine"
+	"github.com/venkytv/botmand/globals"
+	"github.com/venkytv/botmand/message"
 )
 
 type Manager struct {

@@ -6,8 +6,8 @@ from threaded mode to channel mode and vice cersa.
 
 Mode switches are handled by including one of the following commands
 in a message:
-- `botters://switch/channel`: Switch to channel mode
-- `botters://switch/thread`: Create a new thread and switch to that
+- `botmand://switch/channel`: Switch to channel mode
+- `botmand://switch/thread`: Create a new thread and switch to that
 
 ### Installation
 
@@ -16,12 +16,12 @@ make install
 ```
 
 This copies the bot's config as well as the bot script to the
-default config directory: `~/botters-engines`.
+default config directory: `~/botmand-engines`.
 
-If `botters` is already running, make it reload its engines:
+If `botmand` is already running, make it reload its engines:
 
 ```
-pkill -HUP botters
+pkill -HUP botmand
 ```
 
 ### Usage

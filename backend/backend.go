@@ -1,6 +1,6 @@
 package backend
 
-import "github.com/venkytv/botters/message"
+import "github.com/venkytv/botmand/message"
 
 const QBufferSize = 100
 

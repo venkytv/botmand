@@ -14,9 +14,9 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
-	"github.com/venkytv/botters/backend"
-	"github.com/venkytv/botters/conversation"
-	"github.com/venkytv/botters/globals"
+	"github.com/venkytv/botmand/backend"
+	"github.com/venkytv/botmand/conversation"
+	"github.com/venkytv/botmand/globals"
 
 	"github.com/urfave/cli/v2"
 )
@@ -57,7 +57,7 @@ func main() {
 	}
 
 	defaultTokenFile := path.Join(homedir, ".slack.token")
-	defaultBotDirectory := path.Join(homedir, "botters-engines")
+	defaultBotDirectory := path.Join(homedir, "botmand-engines")
 
 	app := &cli.App{
 		Name:    globals.BotName,

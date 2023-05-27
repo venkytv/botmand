@@ -10,12 +10,12 @@ make install
 ```
 
 This copies the bot's config as well as the bot script to the
-default config directory: `~/botters-engines`.
+default config directory: `~/botmand-engines`.
 
-If `botters` is already running, make it reload its engines:
+If `botmand` is already running, make it reload its engines:
 
 ```
-pkill -HUP botters
+pkill -HUP botmand
 ```
 
 ### Usage

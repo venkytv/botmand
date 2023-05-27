@@ -6,8 +6,8 @@ import (
 	"io"
 
 	"github.com/sirupsen/logrus"
-	"github.com/venkytv/botters/engine"
-	"github.com/venkytv/botters/message"
+	"github.com/venkytv/botmand/engine"
+	"github.com/venkytv/botmand/message"
 )
 
 // Conversation types

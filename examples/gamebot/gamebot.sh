@@ -89,14 +89,14 @@ while true; do
 done
 
 if [[ $GAME_CHOICE -eq 1 ]]; then
-    echo "*Guess the Number!* botters://switch/thread"  # Start the game in a new thread
+    echo "*Guess the Number!* botmand://switch/thread"  # Start the game in a new thread
     NGUESSES=0
     guess_the_number
 
     # Post results to the channel
-    echo "Announcing results in the channel botters://switch/channel"
+    echo "Announcing results in the channel botmand://switch/channel"
     echo "The number was guessed in $NGUESSES guesses."
 else
-    echo "*Rock, Paper, Scissors!* botters://switch/thread" # Start the game in a new thread
+    echo "*Rock, Paper, Scissors!* botmand://switch/thread" # Start the game in a new thread
     rock_paper_scissors
 fi

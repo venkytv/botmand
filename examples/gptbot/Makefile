@@ -1,5 +1,5 @@
-CONFIG_DIR = $(HOME)/botters-engines
-IMAGE_NAME = botters-gptbot
+CONFIG_DIR = $(HOME)/botmand-engines
+IMAGE_NAME = botmand-gptbot
 
 all:
 	@echo "Run \"make install\" to build docker image and install the gptbot engine"

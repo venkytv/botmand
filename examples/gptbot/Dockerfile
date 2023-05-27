@@ -11,7 +11,4 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-ARG BOT_NAME=Botters
-ENV BOT_NAME=${BOT_NAME}
-
 CMD ["python3", "gptbot.py"]

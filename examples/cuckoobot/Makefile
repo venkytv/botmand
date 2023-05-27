@@ -1,4 +1,4 @@
-CONFIG_DIR = $(HOME)/botters-engines
+CONFIG_DIR = $(HOME)/botmand-engines
 
 all:
 	@echo Run \"make install\" to install the cuckoobot engine

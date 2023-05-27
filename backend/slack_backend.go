@@ -11,7 +11,7 @@ import (
 	"github.com/allegro/bigcache/v3"
 	"github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
-	"github.com/venkytv/botters/message"
+	"github.com/venkytv/botmand/message"
 )
 
 type SlackApier interface {

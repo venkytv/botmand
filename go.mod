@@ -1,4 +1,4 @@
-module github.com/venkytv/botters
+module github.com/venkytv/botmand
 
 go 1.18
 

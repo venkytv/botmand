@@ -1,7 +1,13 @@
 ## Genbot engine
 
 A simple GPT bot which can generate a shell script to perform the required
-task.
+task. The generated script is run within a docker container, with any files
+or directories it requires from the host mounted as read-only volumes.
+
+### Dependencies
+
+- [Docker](https://www.docker.com/)
+- [Python 3](https://www.python.org/)
 
 ### Installation
 
@@ -10,23 +16,23 @@ make install
 ```
 
 This copies the bot's config as well as the bot script to the
-default config directory: `~/botters-engines`.
+default config directory: `~/botmand-engines`.
 
-Edit `~/botters-engines/genbot.yaml` and set the `OPENAI_API_KEY` variable.
+Edit `~/botmand-engines/genbot.yaml` and set the `OPENAI_API_KEY` variable.
 Check [OpenAI documentation](https://openai.com/blog/openai-api) on signing up
 for the API and [retrieving your API
 key](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key).
 
-If `botters` is already running, make it reload its engines:
+If `botmand` is already running, make it reload its engines:
 
 ```
-pkill -HUP botters
+pkill -HUP botmand
 ```
 
 ### Usage
 
 The bot only listens to messages directed at it in specific channels
-(by default, #genbot). See `~/botters-engines/genbot.yaml` after installation
+(by default, #genbot). See `~/botmand-engines/genbot.yaml` after installation
 to configure this.
 
 When issued an instruction to perform a specific task (eg., to monitor a

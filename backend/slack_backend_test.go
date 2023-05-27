@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"github.com/stretchr/testify/assert"
-	"github.com/venkytv/botters/message"
+	"github.com/venkytv/botmand/message"
 )
 
 const (
