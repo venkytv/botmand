@@ -1,4 +1,4 @@
-name: Build botters
+name: Build botmand
 on:
   push:
     tags:
