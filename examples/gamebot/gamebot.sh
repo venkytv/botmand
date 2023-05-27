@@ -95,7 +95,7 @@ if [[ $GAME_CHOICE -eq 1 ]]; then
 
     # Post results to the channel
     echo "Announcing results in the channel botmand://switch/channel"
-    echo "The number was guessed in $NGUESSES guesses."
+    echo "The number was guessed in $NGUESSES attempts."
 else
     echo "*Rock, Paper, Scissors!* botmand://switch/thread" # Start the game in a new thread
     rock_paper_scissors
