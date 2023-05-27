@@ -1,4 +1,4 @@
-# BotManD Engine
+# BotManD
 
 BotManD is a bot engine designed to siplify the process of creating Slack bots.
 BotManD bots handle a single conversation, reading input on stdin and writing
