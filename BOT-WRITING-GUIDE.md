@@ -4,7 +4,7 @@ BotManD bots are simple executables which read input on stdin and respond on
 stdout. BotManD bots handle a single conversation. The task of managing separate
 conversations is handled by BotManD. This makes writing bots a trivial task.
 
-The following is a bot which waits for mentions of the word "ChatGTP" and chips
+The following is a bot which waits for mentions of the word "ChatGPT" and chips
 in with a comment on how long it has been since someone mentioned it last.
 
 ```bash
@@ -74,7 +74,7 @@ following commands are supported currently:
     the channel any more. But until another message is sent by the bot (or by a
     user explicitly creating a Slack thread from that message), the actual
     thread is not seen in Slack. This can be confusing. The best thing to do
-    after switching to "thread" mode is for the the bot to send a follow-up
+    after switching to "thread" mode is for the bot to send a follow-up
     message. The follow-up message will automatically create the thread in
     Slack.
 
