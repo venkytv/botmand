@@ -7,9 +7,9 @@ Slack conversations.) BotManD launches multiple instances of the bots on demand,
 one for each individual conversation.  Conversations terminate when the bot
 exits.
 
-BotManD bots can be very simple. This is the complete code for a working bot
-which keeps track of when was the last time someone mentioned "ChatGPT" in the
-channel:
+BotManD bots can be very simple. You can write them in any language you want.
+This is the complete code for a working bot which keeps track of when was the
+last time someone mentioned "ChatGPT" in the channel:
 
 ```bash
 #!/bin/bash
