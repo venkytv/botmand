@@ -35,7 +35,8 @@ See [examples](examples) for more examples.
 BotManD is designed primarily for supporting conversational bots, which
 incidentally happens to be how most current AI chatbots are set up. For
 examples of how you can use BotManD to develop AI-powered chatbots, have a look
-at the [gptbot](examples/gptbot) and [genbot](examples/genbot) examples.
+at the [gptbot](examples/gptbot), [logparse](examples/logparse), and
+[genbot](examples/genbot) examples.
 
 ## Installation
 
