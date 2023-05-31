@@ -341,6 +341,11 @@ const (
 )
 
 func (cm *Manager) Post(c *Conversation, m *message.Message) {
+	if len(m.Text) == 0 {
+		logrus.Debugf("Ignoring empty message: %#v", m)
+		return
+	}
+
 	logrus.Debugf("Posting message to backend: %#v", m)
 
 	command := 0
