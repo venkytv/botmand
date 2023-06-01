@@ -13,7 +13,6 @@ This bot is built using the  [langchain framework](https://python.langchain.com/
 
 ### Dependencies
 
-- [Docker](https://www.docker.com/)
 - [Python 3](https://www.python.org/)
 
 ### Installation
