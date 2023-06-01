@@ -3,6 +3,8 @@
 A very basic bot engine which sets up threaded conversations
 where it echoes the user's text back to them.
 
+https://github.com/venkytv/botmand/assets/718613/5f59dcd6-7bd4-406d-b481-029fc1e3463b
+
 ### Installation
 
 ```
