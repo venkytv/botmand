@@ -9,6 +9,8 @@ in a message:
 - `botmand://switch/channel`: Switch to channel mode
 - `botmand://switch/thread`: Create a new thread and switch to that
 
+https://github.com/venkytv/botmand/assets/718613/ef5eb96f-5e41-48c9-bbf8-749f34981312
+
 ### Installation
 
 ```
@@ -26,5 +28,5 @@ pkill -HUP botmand
 
 ### Usage
 
-The bot is triggered in any channel it is in by a directed message which
-the word "game" in it.
+The bot is triggered in any channel where it is present by a directed message
+with the word “game” in it.
