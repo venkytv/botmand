@@ -30,6 +30,8 @@ while :; do
 done
 ```
 
+https://github.com/venkytv/botmand/assets/718613/92c1ea65-9cbd-46a3-b28b-be2a326f0549
+
 See [examples](examples) for more examples.
 
 BotManD is designed primarily for supporting conversational bots, which
@@ -89,6 +91,8 @@ thread until you say "bye".
 
 * [gptbot](examples/gptbot): An AI chat assistant which can participate in the
   conversation when asked to.
+* [logparse](examples/logparse): An AI assistant which can diagnose issues by
+  reading log files.
 * [genbot](examples/genbot): An AI assistant which can generate shell scripts
   for requested tasks and run them within the bot.
 
