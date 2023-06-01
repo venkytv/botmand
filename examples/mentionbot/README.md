@@ -3,6 +3,8 @@
 A simple channel bot that listens for a specific word to be mentioned in the
 channel and responds with the time since the words was last mentioned.
 
+https://github.com/venkytv/botmand/assets/718613/92c1ea65-9cbd-46a3-b28b-be2a326f0549
+
 ### Installation
 
 ```
