@@ -14,8 +14,8 @@ import tiktoken
 import time
 from typing import Deque, List
 
-BOT_ID = os.environ["BOTTERS_USER_ID"]
-BOT_NAME = os.environ["BOTTERS_USER_NAME"]
+BOT_ID = os.environ["BOTMAND_USER_ID"]
+BOT_NAME = os.environ["BOTMAND_USER_NAME"]
 
 MODEL_NAME = os.environ.get("MODEL_NAME", "gpt-3.5-turbo")
 TEMPERATURE = int(os.environ.get("MODEL_TEMPERATURE", 0.6))
@@ -23,8 +23,8 @@ TEMPERATURE = int(os.environ.get("MODEL_TEMPERATURE", 0.6))
 MAX_TOKENS = int(os.environ.get("MAX_TOKENS", 1000))
 MAX_HISTORY = int(os.environ.get("MAX_HISTORY", 100))   # 100 messages of history
 MAX_AGE = int(os.environ.get("MAX_AGE", 60 * 30))       # 30 minutes of history
+TONE = os.environ.get("TONE", "friendly")
 
-SNARKY = ( os.environ.get("SNARKY", "") == "yes" )
 VERBOSE = ( os.environ.get("VERBOSE", "") == "yes" )
 
 logging.basicConfig(format="[%(levelname)s] %(message)s",
@@ -40,12 +40,12 @@ class ChatroomPromptTemplate(StringPromptTemplate, BaseModel):
 
     def format(self, **kwargs) -> str:
         history = "\n".join(kwargs["messages"])
-        addl_character = ", but is also a bit snarky" if kwargs["snarky"] else ""
 
         prompt = f"""
         The following is a conversation between a set of humans and an AI chatbot called {BOT_NAME}.
-        {BOT_NAME} is talkitive and provides lots of specific details from its context{addl_character}.
+        {BOT_NAME} is talkitive and provides lots of specific details from its context.
         If {BOT_NAME} does not know the answer to a question, it truthfully says so.
+        Tone for {BOT_NAME}'s responses: {TONE}
         Format everything in markdown.
 
         Current conversation:
@@ -124,7 +124,7 @@ class ChatEngine:
             return False
 
         self.llm = ChatOpenAI(openai_api_key=api_key, model_name=self.model_name, temperature=self.temperature)
-        self.chain = LLMChain(llm=self.llm, prompt=ChatroomPromptTemplate(input_variables=["messages", "snarky"]))
+        self.chain = LLMChain(llm=self.llm, prompt=ChatroomPromptTemplate(input_variables=["messages", "tone"]))
 
         return True
 
@@ -162,7 +162,7 @@ class ChatEngine:
                 return None
 
         try:
-            return self.chain.run(messages=self.buffer.messages, snarky=SNARKY)
+            return self.chain.run(messages=self.buffer.messages, tone=TONE)
         except Exception as e:
             return f"Error: {e}"
 

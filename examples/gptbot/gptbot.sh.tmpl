@@ -1,10 +1,10 @@
 #!/bin/bash
 
 exec docker run -i --rm \
-	-e BOTTERS_USER_ID \
-	-e BOTTERS_USER_NAME \
+	-e BOTMAND_USER_ID \
+	-e BOTMAND_USER_NAME \
 	-e OPENAI_API_KEY \
 	-e MODEL \
-	-e SNARKY \
+	-e TONE \
 	-e VERBOSE \
 	"@IMAGE_NAME@"
