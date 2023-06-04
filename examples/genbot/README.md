@@ -4,6 +4,8 @@ A simple GPT bot which can generate a shell script to perform the required
 task. The generated script is run within a docker container, with any files
 or directories it requires from the host mounted as read-only volumes.
 
+https://github.com/venkytv/botmand/assets/718613/a0553be7-9c7b-4bc5-892a-d19b24c12f8d
+
 ### Dependencies
 
 - [Docker](https://www.docker.com/)
