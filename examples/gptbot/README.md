@@ -16,7 +16,7 @@ Note that while the bot keeps track of the current conversation even if it is
 not directly mentioned in the messages, it does **NOT** send anything to OpenAI
 until it is specifically menioned in the conversation.
 
-https://github.com/venkytv/botmand/assets/718613/8ca337bb-4d62-4f5b-9fff-3b2706f86d99
+https://github.com/venkytv/botmand/assets/718613/57273ae1-5b1c-4ea6-9ab9-c6151a62d7e3
 
 ### Dependencies
 
