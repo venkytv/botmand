@@ -7,7 +7,7 @@ conversation, reading input on stdin and writing responses on stdout. (Think
 manages the lifecycle of the bots, launching multiple instances on demand, one
 for each individual conversation.  Conversations terminate when the bot exits.
 
-BotManD bots can be very simple. You can write them in any language you want.
+The bots themselves can be very simple. You can write them in any language you want.
 This is the complete code for a working bot which keeps track of when was the
 last time someone mentioned "ChatGPT" in the channel:
 
