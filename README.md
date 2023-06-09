@@ -40,6 +40,8 @@ examples of how you can use BotManD to develop AI-powered chatbots, have a look
 at the [gptbot](examples/gptbot), [logparse](examples/logparse), and
 [genbot](examples/genbot) examples.
 
+https://github.com/venkytv/botmand/assets/718613/acc6a5d6-1c6a-4c37-99a2-97a5e149ac6a
+
 ## Installation
 
 * Download the [latest release](../../releases/latest) of botmand for your platform.
