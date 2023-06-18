@@ -36,6 +36,8 @@ See [examples](examples) for more examples. Writing a BotManD bot is so simple
 that you can write a [simple bot that uses ChatGPT to write bots of its
 own](examples/genbot).
 
+### AI-powered Chatbots
+
 BotManD is designed primarily for supporting conversational bots, which
 incidentally happens to be how most current AI chatbots are set up. For
 examples of how you can use BotManD to develop AI-powered chatbots, have a look
