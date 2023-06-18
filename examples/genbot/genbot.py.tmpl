@@ -218,11 +218,6 @@ def run_container(image: str, volumes: list[str], description: str):
     print(f"Launching container: {' '.join(cmd)}")
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE, text=True)
     for line in sys.stdin:
-        rc = p.poll()
-        if rc:
-            print(f"Docker container has terminated with return code: {rc}")
-            sys.exit
-
         # Special commands
         if "genbot ls" in line:
             print(f"GENBOT {pid}: {description}")
@@ -236,6 +231,12 @@ def run_container(image: str, volumes: list[str], description: str):
             else:
                 # Stop command for another genbot
                 continue
+
+        active = p.poll()
+        if active is not None:
+            if p.returncode != 0:
+                print(f"GENBOT {pid} (\"{description}\") has terminated with return code: {p.returncode}")
+            sys.exit(p.returncode)
 
         p.stdin.write(line)
         p.stdin.flush()

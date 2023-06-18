@@ -32,7 +32,9 @@ done
 
 https://github.com/venkytv/botmand/assets/718613/92c1ea65-9cbd-46a3-b28b-be2a326f0549
 
-See [examples](examples) for more examples.
+See [examples](examples) for more examples. Writing a BotManD bot is so simple
+that you can write a [simple bot that uses ChatGPT to write bots of its
+own](examples/genbot).
 
 BotManD is designed primarily for supporting conversational bots, which
 incidentally happens to be how most current AI chatbots are set up. For
