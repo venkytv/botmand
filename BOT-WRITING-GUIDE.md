@@ -55,7 +55,20 @@ The bot will have access to the following environment variables:
 
 See [gptbot](examples/gptbot/gptbot.py) for an example of how a bot might use these variables.
 
-## BotManD commands
+## Special Handling
+
+BotManD primarily serves as a conduit for relaying user messages to the bot and
+delivering bot messages to the user. However, there are a few bot messages that
+are handled differently.
+
+The first is a message from the bot with the text `...`. This message is not
+posted on the channel, but instead a typing indicator is generated. This is
+useful in cases where the bot might take some time to generate a response, and
+it wants to indicate to the user that it is doing something.
+
+The second set of special messages are BotManD commands.
+
+### BotManD commands
 
 BotManD uses a `botmand://` URL scheme for commands. A bot can include these
 commands in messages to instruct BotManD to perform specific actions.  The
