@@ -1,11 +1,13 @@
 # BotManD
 
 BotManD is a bot engine designed to simplify the process of creating Slack
-bots.  BotManD bots are standalone executables that handle a single
-conversation, reading input on stdin and writing responses on stdout. (Think
-[inetd](https://en.wikipedia.org/wiki/Inetd) for Slack conversations.) BotManD
-manages the lifecycle of the bots, launching multiple instances on demand, one
-for each individual conversation.  Conversations terminate when the bot exits.
+bots.
+
+BotManD is to Slack conversations what a webserver is to CGI scripts. It allows
+you to write bots that are simple executables which read from stdin and write
+to stdout.  BotManD manages the lifecycles of the bots--launching instances on
+demand (a separate instance for each conversation), and terminating
+conversations when the bot executables exit.
 
 The bots themselves can be very simple. You can write them in any language you want.
 This is the complete code for a working bot which keeps track of when was the
