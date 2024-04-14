@@ -2,7 +2,7 @@
 
 A simple GPT bot which, when asked directly, participates in the conversation
 using previous messages in the conversation as context.  The bot is built
-using the [langchain framework](https://python.langchain.com/en/latest/).
+using the [OpenAI Python library](https://github.com/openai/openai-python).
 
 **IMPORTANT: The bot sends the last few messages in the conversation (for up to
 30 minutes in the past by default) to OpenAI to generate a response. Please
