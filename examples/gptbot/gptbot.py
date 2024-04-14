@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import LLMChain
-from langchain.prompts import StringPromptTemplate
-from pydantic import BaseModel, validator
+from openai import OpenAI
 
 from collections import deque
 import logging
@@ -29,39 +26,14 @@ VERBOSE = ( os.environ.get("VERBOSE", "") == "yes" )
 
 logging.basicConfig(format="[%(levelname)s] %(message)s",
                     level=logging.DEBUG if VERBOSE else logging.INFO)
-
-class ChatroomPromptTemplate(StringPromptTemplate, BaseModel):
-
-    @validator("input_variables")
-    def validate_input_variables(cls, v):
-        if len(v) < 1 or "messages" not in v:
-            raise ValueError("Input variables must be a list containing 'messages'.")
-        return v
-
-    def format(self, **kwargs) -> str:
-        history = "\n".join(kwargs["messages"])
-
-        prompt = f"""
-        The following is a conversation between a set of humans and an AI chatbot called {BOT_NAME}.
-        {BOT_NAME} is talkitive and provides lots of specific details from its context.
-        If {BOT_NAME} does not know the answer to a question, it truthfully says so.
-        Tone for {BOT_NAME}'s responses: {TONE}
-        Format everything in markdown.
-
-        Current conversation:
-        {history}
-        {BOT_NAME}: """
-
-        return prompt
-
-    def _prompt_type(self) -> str:
-        return "chatroom-bot"
+logging.debug("Enabled logging")
 
 class Message:
     encoding = tiktoken.encoding_for_model(MODEL_NAME)
 
-    def __init__(self, text: str):
+    def __init__(self, text: str, from_assistant=False):
         self.text = text
+        self.from_assistant = from_assistant
         self.timestamp = time.time()
         self.num_tokens = len(self.encoding.encode(text))
 
@@ -88,7 +60,7 @@ class MessageBuffer:
 
     @property
     def messages(self) -> List[str]:
-        return [m.text for m in self._messages if m.age < MAX_AGE]
+        return [m for m in self._messages if m.age < MAX_AGE]
 
     def length(self) -> int:
         return len(self._messages)
@@ -104,29 +76,24 @@ class ChatEngine:
         self.model_name = model_name
         self.temperature = temperature
         self.verbose = verbose
-        self.llm = None
-        self.chain = None
+
+        self.system_prompt = f"""
+        The following is a conversation between a set of humans and an AI chatbot called {BOT_NAME}.
+        {BOT_NAME} is talkitive and provides lots of specific details from its context.
+        If {BOT_NAME} does not know the answer to a question, it truthfully says so.
+        Tone for {BOT_NAME}'s responses: {TONE}
+        Format everything in markdown."""
 
         self.buffer = MessageBuffer(max_length=max_history, max_tokens=max_tokens)
-        self._openai_api_key = None
+        self._client = None
 
     @property
-    def openai_api_key(self):
-        if not self._openai_api_key:
-            # Check if key is set in environment
-            self._openai_api_key = os.environ.get("OPENAI_API_KEY", None)
-
-        return self._openai_api_key
-
-    def load_chain(self):
-        api_key = self.openai_api_key
-        if not api_key:
-            return False
-
-        self.llm = ChatOpenAI(openai_api_key=api_key, model_name=self.model_name, temperature=self.temperature)
-        self.chain = LLMChain(llm=self.llm, prompt=ChatroomPromptTemplate(input_variables=["messages", "tone"]))
-
-        return True
+    def client(self):
+        if not self._client:
+            api_key = os.environ.get("OPENAI_API_KEY", None)
+            if api_key:
+                self._client = OpenAI(api_key=api_key)
+        return self._client
 
     # Record a message, and respond if necessary
     def record(self, raw_message):
@@ -145,24 +112,40 @@ class ChatEngine:
             response = self.chat()
 
             if response:
-                self.buffer.append(Message(f"{BOT_NAME}: {response}"))
+                self.buffer.append(Message(response, from_assistant=True))
 
                 # Replace all usernames with slack mentions
                 response = re.sub(r"(U.*?)\b", r"<@\1>", response)
 
                 self.respond(response)
 
+    # Get the messages to send to the chat engine
+    def get_messages(self) -> list[dict[str, str]]:
+        messages = [
+            { "role": "system", "content": self.system_prompt },
+        ]
+        for message in self.buffer.messages:
+            messages.append({
+                "role": "assistant" if message.from_assistant else "user",
+                "content": message.text,
+            })
+
+        logging.debug(messages)
+        return messages
+
     # Run the chat engine and return a response
     def chat(self) -> str:
-        if not self.chain:
-            if not self.load_chain():
-                self.respond(f"No OpenAI API key found in environment.\n" +
-                             "Please set the OPENAI_API_KEY environment variable in the config.")
-                sys.exit("No OpenAI API key found in environment.")
-                return None
+        if not self.client:
+            self.respond(f"No OpenAI API key found in environment.\n" +
+                         "Please set the OPENAI_API_KEY environment variable in the config.")
+            sys.exit("No OpenAI API key found in environment.")
+            return None
 
         try:
-            return self.chain.run(messages=self.buffer.messages, tone=TONE)
+            response = self.client.chat.completions.create(
+                messages=self.get_messages(),
+                model=self.model_name)
+            return response.choices[0].message.content
         except Exception as e:
             return f"Error: {e}"
 
